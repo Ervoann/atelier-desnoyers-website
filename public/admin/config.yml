@@ -2,7 +2,7 @@ backend:
   name: github
   repo: Ervoann/atelier-desnoyers-website
   branch: main
-  base_url: https://api.netlify.com # Pour l'auth OAuth
+  base_url: https://api.netlify.com
   auth_endpoint: auth
 
 media_folder: "public/uploads"
