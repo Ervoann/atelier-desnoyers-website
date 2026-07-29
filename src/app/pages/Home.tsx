@@ -1,7 +1,7 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
-import { portfolio, faq, accompagnements, articles } from "@/app/data";
+import { portfolio, faq, accompagnements, articles } from "@/app/data-generated";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";

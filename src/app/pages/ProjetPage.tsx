@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, Navigate } from "react-router";
 import { ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { portfolio } from "@/app/data";
+import { portfolio } from "@/app/data-generated";
 
 export default function ProjetPage() {
   const { slug } = useParams<{ slug: string }>();

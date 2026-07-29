@@ -67,10 +67,8 @@ export type Slide =
 
 export const portfolio = ${JSON.stringify(projects, null, 2)};
 
-// TODO: Générer aussi les autres données (FAQ, accompagnements, articles) depuis le CMS
-export const faq = [];
-export const accompagnements = [];
-export const articles = [];
+// Pour l'instant, on réexporte les données qui ne sont pas encore dans le CMS
+export { faq, accompagnements, articles } from './data';
 `;
 
   fs.writeFileSync(outputFile, content, 'utf-8');

@@ -1,6 +1,6 @@
 import { useParams, Link, Navigate } from "react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { articles } from "@/app/data";
+import { articles } from "@/app/data-generated";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("fr-FR", {
