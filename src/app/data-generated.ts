@@ -40,6 +40,24 @@ export const portfolio = [
       "Sol vivant",
       "Aménagement"
     ]
+  },
+  {
+    "id": 2,
+    "slug": "test-jardin",
+    "titre": "Test Jardin",
+    "lieu": "Paris",
+    "type": "Jardin test",
+    "annee": "2026",
+    "surface": "100 m²",
+    "img": "/uploads/bush-hammered-concrete-stack-3020mm.jpg",
+    "slides": [
+      {
+        "type": "image",
+        "src": "bush-hammered-concrete-stack-3020mm.jpg"
+      }
+    ],
+    "description": "Mon test",
+    "tags": []
   }
 ];
 

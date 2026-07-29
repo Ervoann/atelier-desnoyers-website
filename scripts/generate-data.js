@@ -1,23 +1,34 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import matter from 'gray-matter';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const portfolioDir = path.join(__dirname, '../public/content/portfolio');
 const outputFile = path.join(__dirname, '../src/app/data-generated.ts');
 
-// Lire tous les fichiers JSON du portfolio
+// Lire tous les fichiers du portfolio (JSON et MD)
 function loadPortfolioProjects() {
   if (!fs.existsSync(portfolioDir)) {
     console.log('Dossier portfolio non trouvé, utilisation des données par défaut');
     return [];
   }
 
-  const files = fs.readdirSync(portfolioDir).filter(f => f.endsWith('.json'));
+  const files = fs.readdirSync(portfolioDir).filter(f => f.endsWith('.json') || f.endsWith('.md'));
 
   const projects = files.map((file, index) => {
     const content = fs.readFileSync(path.join(portfolioDir, file), 'utf-8');
-    const project = JSON.parse(content);
+
+    let project;
+    if (file.endsWith('.json')) {
+      project = JSON.parse(content);
+    } else {
+      // Parser le front matter pour les fichiers .md
+      const { data } = matter(content);
+      project = data;
+    }
+
+    if (!project || !project.slug) return null;
 
     // Convertir le format CMS vers le format attendu par le code
     return {
@@ -29,14 +40,16 @@ function loadPortfolioProjects() {
       annee: project.annee,
       surface: project.surface,
       img: project.img,
-      slides: project.slides.map(slide => ({
-        type: slide.type,
-        ...(slide.type === 'youtube' ? { videoId: slide.src } : { src: slide.src })
-      })),
+      slides: Array.isArray(project.slides)
+        ? project.slides.map(slide => ({
+            type: slide.type,
+            ...(slide.type === 'youtube' ? { videoId: slide.src } : { src: slide.src })
+          }))
+        : [],
       description: project.description,
       tags: project.tags || []
     };
-  });
+  }).filter(Boolean); // Enlever les projets null
 
   return projects;
 }
