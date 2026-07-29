@@ -1,3 +1,8 @@
+# Forcer le bon Content-Type pour les fichiers YAML
+<FilesMatch "\.ya?ml$">
+  Header set Content-Type "text/yaml; charset=UTF-8"
+</FilesMatch>
+
 # Permettre l'accès direct à /admin sans passer par React Router
 <IfModule mod_rewrite.c>
   RewriteEngine On
