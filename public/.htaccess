@@ -1,0 +1,15 @@
+# Permettre l'accès direct à /admin sans passer par React Router
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Si c'est le dossier /admin, ne pas rediriger
+  RewriteRule ^admin/ - [L]
+
+  # Si le fichier ou dossier existe, le servir directement
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Sinon, rediriger vers index.html (pour React Router)
+  RewriteRule . /index.html [L]
+</IfModule>
