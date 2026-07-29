@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administration - Atelier Desnoyers</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+  <!-- Include the script that builds the page and powers Decap CMS -->
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
+    // Configuration locale en français
+    CMS.registerLocale('fr', {
+      auth: {
+        login: 'Connexion',
+        loggingIn: 'Connexion en cours...',
+        loginWithNetlifyIdentity: 'Se connecter avec Netlify Identity',
+        loginWithGitHub: 'Se connecter avec GitHub',
+        errors: {
+          email: 'Veuillez entrer votre email.',
+          password: 'Veuillez entrer votre mot de passe.',
+          identitySettings: 'Impossible d\'accéder aux paramètres d\'identité.',
+        },
+      },
+      app: {
+        header: {
+          content: 'Contenus',
+          workflow: 'Workflow',
+          media: 'Médias',
+          quickAdd: 'Ajout rapide',
+        },
+      },
+    });
+  </script>
+</body>
+</html>

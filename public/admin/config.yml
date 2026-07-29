@@ -1,0 +1,73 @@
+backend:
+  name: github
+  repo: https://github.com/Ervoann/atelier-desnoyers-website.git
+  branch: main
+  base_url: https://api.netlify.com # Pour l'auth OAuth
+  auth_endpoint: auth
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+locale: "fr"
+
+collections:
+  # Collection pour les paramètres de la page d'accueil
+  - name: "settings"
+    label: "Paramètres du site"
+    files:
+      - name: "homepage"
+        label: "Page d'accueil"
+        file: "public/content/settings/homepage.json"
+        fields:
+          - { label: "Titre du site", name: "siteTitle", widget: "string" }
+          - { label: "Sous-titre", name: "subtitle", widget: "string" }
+          - { label: "Image de bannière", name: "bannerImage", widget: "image" }
+          - { label: "Description", name: "description", widget: "text" }
+          - label: "Sections"
+            name: "sections"
+            widget: "list"
+            fields:
+              - { label: "Titre de section", name: "title", widget: "string" }
+              - { label: "Contenu", name: "content", widget: "markdown" }
+              - { label: "Image", name: "image", widget: "image", required: false }
+
+      - name: "general"
+        label: "Paramètres généraux"
+        file: "public/content/settings/general.json"
+        fields:
+          - { label: "Nom de l'atelier", name: "atelierName", widget: "string" }
+          - { label: "Email de contact", name: "email", widget: "string" }
+          - { label: "Téléphone", name: "phone", widget: "string", required: false }
+          - { label: "Adresse", name: "address", widget: "text", required: false }
+          - label: "Réseaux sociaux"
+            name: "social"
+            widget: "object"
+            fields:
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "Twitter", name: "twitter", widget: "string", required: false }
+
+  # Collection pour les articles de blog
+  - name: "blog"
+    label: "Articles de blog"
+    folder: "public/content/blog"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Date de publication", name: "date", widget: "datetime", format: "YYYY-MM-DD HH:mm:ss" }
+      - { label: "Auteur", name: "author", widget: "string", default: "Atelier Desnoyers" }
+      - { label: "Image de couverture", name: "coverImage", widget: "image" }
+      - { label: "Résumé", name: "excerpt", widget: "text", required: false }
+      - { label: "Contenu", name: "body", widget: "markdown" }
+      - { label: "Publié", name: "published", widget: "boolean", default: true }
+      - label: "Catégories"
+        name: "categories"
+        widget: "list"
+        allow_add: true
+        default: ["Actualités"]
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        allow_add: true
+        required: false
