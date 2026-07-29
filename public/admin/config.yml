@@ -47,6 +47,34 @@ collections:
               - { label: "Instagram", name: "instagram", widget: "string", required: false }
               - { label: "Twitter", name: "twitter", widget: "string", required: false }
 
+  # Collection pour les projets portfolio
+  - name: "portfolio"
+    label: "Projets Portfolio"
+    folder: "public/content/portfolio"
+    create: true
+    slug: "{{slug}}"
+    identifier_field: "titre"
+    fields:
+      - { label: "Titre", name: "titre", widget: "string" }
+      - { label: "Slug (URL)", name: "slug", widget: "string", hint: "Ex: jardin-naturaliste-lyon" }
+      - { label: "Lieu", name: "lieu", widget: "string" }
+      - { label: "Type", name: "type", widget: "string", hint: "Ex: Jardin privé, Espace partagé" }
+      - { label: "Année", name: "annee", widget: "string" }
+      - { label: "Surface", name: "surface", widget: "string" }
+      - { label: "Image principale", name: "img", widget: "image" }
+      - { label: "Description", name: "description", widget: "text" }
+      - label: "Galerie d'images"
+        name: "slides"
+        widget: "list"
+        fields:
+          - { label: "Type", name: "type", widget: "select", options: ["image", "youtube"] }
+          - { label: "URL de l'image ou ID YouTube", name: "src", widget: "string" }
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        allow_add: true
+        default: []
+
   # Collection pour les articles de blog
   - name: "blog"
     label: "Articles de blog"
