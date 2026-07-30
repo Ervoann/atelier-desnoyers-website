@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
-import strapi from './strapi/node_modules/@strapi/strapi/dist/index.js';
+import { createStrapi } from '@strapi/strapi';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,10 +11,10 @@ const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   // Start Strapi programmatically
-  const strapiInstance = await strapi({
+  const strapiInstance = await createStrapi({
     distDir: path.join(__dirname, 'strapi', 'dist'),
     autoReload: false,
-  }).start();
+  }).load();
 
   // Serve React static files (with fallback for SPA routing)
   app.use(express.static(path.join(__dirname, 'dist')));
