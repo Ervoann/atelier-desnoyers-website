@@ -5,9 +5,9 @@ strapi/node_modules
 .pnp.js
 
 # Production builds
-dist
+# dist  # Temporarily allow dist for deployment
 build
-strapi/dist
+# strapi/dist  # Temporarily allow strapi/dist for deployment
 strapi/build
 .strapi-updater.json
 

@@ -1,0 +1,51 @@
+{
+    "kind": "collectionType",
+    "collectionName": "demarche_dessiners",
+    "info": {
+        "singularName": "demarche-dessiner",
+        "pluralName": "demarche-dessiners",
+        "displayName": "demarche-dessiner"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "titre": {
+            "type": "string"
+        },
+        "sousTitre": {
+            "type": "string"
+        },
+        "citation": {
+            "type": "text"
+        },
+        "paragraphe": {
+            "type": "text"
+        },
+        "aspect1Titre": {
+            "type": "string"
+        },
+        "aspect1Detail": {
+            "type": "text"
+        },
+        "aspect2Titre": {
+            "type": "string"
+        },
+        "aspect2Detail": {
+            "type": "text"
+        },
+        "aspect3Titre": {
+            "type": "string"
+        },
+        "aspect3Detail": {
+            "type": "text"
+        },
+        "aspect4Titre": {
+            "type": "string"
+        },
+        "aspect4Detail": {
+            "type": "text"
+        }
+    }
+}
