@@ -1,11 +1,13 @@
-const path = require('path');
-const express = require('express');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import strapi from './strapi/node_modules/@strapi/strapi/dist/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Import Strapi
-const strapi = require('./strapi/node_modules/@strapi/strapi');
 
 async function startServer() {
   // Start Strapi programmatically
