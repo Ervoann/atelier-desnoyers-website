@@ -1,0 +1,31 @@
+name: Deploy to Infomaniak
+
+on:
+  push:
+    branches:
+      - main  # Se déclenche quand vous poussez sur la branche main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Infomaniak via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_SERVER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 22
+          local_path: './*'
+          remote_path: '/sites/atelier-desnoyers.com/'
+          sftp_only: true
+          args: '-o StrictHostKeyChecking=no'
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Déploiement terminé !"
+          echo "🔨 Maintenant, allez dans le Manager Infomaniak et cliquez sur 'Build' pour compiler l'application."
