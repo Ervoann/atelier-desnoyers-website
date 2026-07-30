@@ -1,10 +1,6 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import express from 'express';
-import { createStrapi } from '@strapi/strapi';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const path = require('path');
+const express = require('express');
+const { createStrapi } = require('@strapi/strapi');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
