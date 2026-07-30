@@ -1,36 +1,67 @@
 # Dependencies
 node_modules
+strapi/node_modules
 .pnp
 .pnp.js
 
-# Production
+# Production builds
 dist
 build
+strapi/dist
+strapi/build
+.strapi-updater.json
 
 # Testing
 coverage
 
-# Misc
-.DS_Store
+# Environment variables - IMPORTANT: Ne jamais commiter les fichiers .env !
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+strapi/.env
+strapi/.env.local
+strapi/.env.production
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+pm2-*.log
+logs/
+*.log
 
 # Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
+*.swp
+*.swo
+*~
 
 # OS
+.DS_Store
 Thumbs.db
 
 # Cache
 .cache
 *.tsbuildinfo
+strapi/.cache
+strapi/.temp
+.temp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Strapi uploads (dev only)
+strapi/public/uploads
+
+# Temporary scripts
+cleanup-db.js
+cleanup-test-texts.sql
+encode-password.js

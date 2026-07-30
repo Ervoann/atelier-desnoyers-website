@@ -1,10 +1,11 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
-import { portfolio, faq, accompagnements, articles } from "@/app/data-generated";
+import { portfolio, faq, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner } from "@/app/hooks/useStrapiData";
 
 type Projet = (typeof portfolio)[number];
 
@@ -186,6 +187,10 @@ function HeroVideo() {
 
 export default function Home() {
   const [selectedProjet, setSelectedProjet] = useState<Projet | null>(null);
+  const { data: homepage, loading, error } = useHomepage();
+  const { data: citation } = useCitation();
+  const { data: observer } = useDemarcheObserver();
+  const { data: dessiner } = useDemarcheDessiner();
 
   return (
     <>
@@ -199,17 +204,31 @@ export default function Home() {
           <div className="grid md:grid-cols-12 items-end gap-8">
             <div className="md:col-span-8">
               <p className="text-xs tracking-widest uppercase text-white/50 mb-5">
-                Jardinier · Designer — Lyon & Rhône-Alpes Auvergne
+                {loading ? "Chargement..." : homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"}
               </p>
               <h1
                 className="text-5xl md:text-7xl lg:text-8xl font-normal leading-[1.02] text-white mb-6"
                 style={{ fontFamily: "'Fraunces', serif" }}
               >
-                Des jardins
-                <br />
-                comme des
-                <br />
-                <em>tableaux vivants.</em>
+                {loading ? (
+                  "Chargement..."
+                ) : homepage?.heroTitre ? (
+                  <>
+                    {homepage.heroTitre.split(" ").slice(0, 2).join(" ")}
+                    <br />
+                    {homepage.heroTitre.split(" ").slice(2, 5).join(" ")}
+                    <br />
+                    <em>{homepage.heroTitre.split(" ").slice(5).join(" ")}</em>
+                  </>
+                ) : (
+                  <>
+                    Des jardins
+                    <br />
+                    comme des
+                    <br />
+                    <em>tableaux vivants.</em>
+                  </>
+                )}
               </h1>
             </div>
             <div className="md:col-span-4 md:pb-2">
@@ -219,21 +238,20 @@ export default function Home() {
                 style={{ width: "220px", display: "block", marginBottom: "2rem" }}
               />
               <p className="text-sm text-white/60 leading-relaxed mb-8">
-                Je conçois des jardins naturalistes et les accompagne dans le temps.
-                Entre conception et soin, créer des lieux vivants, sensibles et durables.
+                {loading ? "Chargement..." : homepage?.heroDescription || "Je conçois des jardins naturalistes et les accompagne dans le temps. Entre conception et soin, créer des lieux vivants, sensibles et durables."}
               </p>
               <div className="flex flex-col sm:flex-row md:flex-col gap-3">
                 <a
                   href="#contact"
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-primary text-xs tracking-widest uppercase hover:opacity-90 transition-opacity"
                 >
-                  Projet de jardin <ArrowUpRight size={12} />
+                  {homepage?.heroCtaPrincipal || "Projet de jardin"} <ArrowUpRight size={12} />
                 </a>
                 <a
                   href="#observer"
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/30 text-white text-xs tracking-widest uppercase hover:border-white/70 transition-colors"
                 >
-                  La démarche
+                  {homepage?.heroCtaSecondaire || "La démarche"}
                 </a>
               </div>
             </div>
@@ -318,14 +336,23 @@ export default function Home() {
             className="text-2xl md:text-3xl leading-relaxed text-accent italic"
             style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}
           >
-            "Entre conception et soin, mon travail consiste à créer des jardins vivants,
-            sensibles et durables, où les plantes composent au fil des saisons de véritables
-            tableaux en mouvement."
+            {citation?.texte || '"Entre conception et soin, mon travail consiste à créer des jardins vivants, sensibles et durables, où les plantes composent au fil des saisons de véritables tableaux en mouvement."'}
           </p>
           <p className="mt-6 text-xs tracking-widest uppercase text-muted-foreground">
-            Car un jardin ne s'achève jamais le jour où il est planté.
-            <br />
-            C'est là que son histoire commence.
+            {citation?.sousTexte ? (
+              citation.sousTexte.split('\n').map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i < citation.sousTexte.split('\n').length - 1 && <br />}
+                </span>
+              ))
+            ) : (
+              <>
+                Car un jardin ne s'achève jamais le jour où il est planté.
+                <br />
+                C'est là que son histoire commence.
+              </>
+            )}
           </p>
         </div>
       </section>
@@ -336,17 +363,17 @@ export default function Home() {
           <div className="md:col-span-5">
             <div className="text-accent mb-4"><IconObserver /></div>
             <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>01</p>
-            <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>Observer</h2>
-            <p className="text-sm text-muted-foreground mb-2 font-medium">Visite & diagnostic</p>
+            <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
+              {observer?.titre || "Observer"}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-2 font-medium">
+              {observer?.sousTitre || "Visite & diagnostic"}
+            </p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-6">
-              Chaque jardin commence par une rencontre. J'observe le lieu tel qu'il est&nbsp;:
-              sa topographie, la nature de son sol, son exposition, ses vues, ses contraintes
-              et ses richesses parfois discrètes. J'écoute également les habitants, leurs usages,
-              leurs envies et leur manière d'habiter le paysage.
+              {observer?.paragraphe1 || "Chaque jardin commence par une rencontre. J'observe le lieu tel qu'il est : sa topographie, la nature de son sol, son exposition, ses vues, ses contraintes et ses richesses parfois discrètes. J'écoute également les habitants, leurs usages, leurs envies et leur manière d'habiter le paysage."}
             </p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-              Avant toute intervention, il s'agit de comprendre. Un jardin existe souvent
-              déjà en puissance.
+              {observer?.paragraphe2 || "Avant toute intervention, il s'agit de comprendre. Un jardin existe souvent déjà en puissance."}
             </p>
           </div>
           <div className="md:col-span-7">
@@ -358,11 +385,15 @@ export default function Home() {
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {[
+              {(observer ? [
+                { verb: observer.action1Titre, desc: observer.action1Description },
+                { verb: observer.action2Titre, desc: observer.action2Description },
+                { verb: observer.action3Titre, desc: observer.action3Description },
+              ] : [
                 { verb: "Arpenter", desc: "Mesurer, topographier, analyser" },
                 { verb: "Débusquer", desc: "Relever les plantes bio-indicatrices" },
                 { verb: "S'imprégner", desc: "Laisser infuser pour faire éclore le concept" },
-              ].map((s) => (
+              ]).map((s) => (
                 <div key={s.verb} className="bg-card p-4 border-t-[3px] border-accent/60">
                   <div className="text-base font-normal mb-1 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.verb}</div>
                   <div className="text-xs text-muted-foreground leading-relaxed">{s.desc}</div>
@@ -387,28 +418,34 @@ export default function Home() {
               </div>
               <div className="bg-background border-l-[3px] border-accent/60 p-5 pl-6">
                 <p className="text-base italic text-accent leading-relaxed" style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}>
-                  "À l'origine, dessin et dessein sont le même mot. Le trait visible
-                  naît d'une intention invisible."
+                  {dessiner?.citation || '"À l\'origine, dessin et dessein sont le même mot. Le trait visible naît d\'une intention invisible."'}
                 </p>
               </div>
             </div>
             <div className="md:col-span-5 order-1 md:order-2">
               <div className="text-accent mb-4"><IconDessiner /></div>
               <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>02</p>
-              <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>Dessiner</h2>
-              <p className="text-sm text-muted-foreground mb-2 font-medium">Conception du jardin</p>
+              <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
+                {dessiner?.titre || "Dessiner"}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-2 font-medium">
+                {dessiner?.sousTitre || "Conception du jardin"}
+              </p>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-8">
-                Vient ensuite le temps du dessin. Croquis, esquisses, recherches et rêveries
-                permettent de faire émerger une vision. Le projet prend forme progressivement,
-                guidé par l'esprit du lieu autant que par les aspirations de ses habitants.
+                {dessiner?.paragraphe || "Vient ensuite le temps du dessin. Croquis, esquisses, recherches et rêveries permettent de faire émerger une vision. Le projet prend forme progressivement, guidé par l'esprit du lieu autant que par les aspirations de ses habitants."}
               </p>
               <div className="space-y-4">
-                {[
+                {(dessiner ? [
+                  { titre: dessiner.aspect1Titre, detail: dessiner.aspect1Detail },
+                  { titre: dessiner.aspect2Titre, detail: dessiner.aspect2Detail },
+                  { titre: dessiner.aspect3Titre, detail: dessiner.aspect3Detail },
+                  { titre: dessiner.aspect4Titre, detail: dessiner.aspect4Detail },
+                ] : [
                   { titre: "Esthétique", detail: "Carnet d'influence, esquisses, dessins d'élévation, illustrations d'ambiance" },
                   { titre: "Écologique", detail: "Palette végétale élégante, robuste, adaptée et locale, établie avec mes partenaires pépiniéristes" },
                   { titre: "Technique", detail: "Plan d'implantation, de réseau, de structure" },
                   { titre: "Économique", detail: "Chiffrage des postes, sélection des fournisseurs, calendrier prévisionnel" },
-                ].map((d) => (
+                ]).map((d) => (
                   <div key={d.titre} className="flex gap-4 text-sm">
                     <span className="w-24 flex-shrink-0 text-accent font-medium">{d.titre}</span>
                     <span className="text-muted-foreground leading-relaxed">{d.detail}</span>
