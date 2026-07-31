@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
-// Use relative URL in production (same domain), localhost in development
-const STRAPI_URL = import.meta.env.PROD ? '' : 'http://localhost:1337';
+// Use Render.com URL in production, localhost in development
+const STRAPI_URL = import.meta.env.PROD
+  ? 'https://atelier-desnoyers-strapi.onrender.com'
+  : 'http://localhost:1337';
 
 // Fonction utilitaire pour convertir le Rich Text de Strapi en texte simple
 function richTextToPlainText(richText: any): string {
