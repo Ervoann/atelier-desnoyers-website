@@ -3,6 +3,7 @@ import Root from "./Root";
 import Home from "./pages/Home";
 import ProjetPage from "./pages/ProjetPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
+import AdminPage from "./pages/AdminPage";
 
 export const router = createBrowserRouter([
   {
@@ -13,5 +14,9 @@ export const router = createBrowserRouter([
       { path: "projets/:slug", Component: ProjetPage },
       { path: "journal/:slug", Component: BlogArticlePage },
     ],
+  },
+  {
+    path: "/admin",
+    Component: AdminPage,
   },
 ]);

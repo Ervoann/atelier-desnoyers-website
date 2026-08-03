@@ -5,7 +5,7 @@ import { portfolio, faq, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner } from "@/app/hooks/useStrapiData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner } from "@/app/hooks/useSupabaseData";
 
 type Projet = (typeof portfolio)[number];
 

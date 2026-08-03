@@ -1,15 +1,11 @@
 # Dependencies
 node_modules
-strapi/node_modules
 .pnp
 .pnp.js
 
 # Production builds
 # dist  # Temporarily allow dist for deployment
 build
-# strapi/dist  # Temporarily allow strapi/dist for deployment
-strapi/build
-.strapi-updater.json
 
 # Testing
 coverage
@@ -20,11 +16,6 @@ coverage
 .env.development.local
 .env.test.local
 .env.production.local
-.env.production
-.env.server
-strapi/.env
-strapi/.env.local
-strapi/.env.production
 
 # Logs
 npm-debug.log*
@@ -50,19 +41,9 @@ Thumbs.db
 # Cache
 .cache
 *.tsbuildinfo
-strapi/.cache
-strapi/.temp
 .temp
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
-
-# Strapi uploads (dev only)
-strapi/public/uploads
-
-# Temporary scripts
-cleanup-db.js
-cleanup-test-texts.sql
-encode-password.js
