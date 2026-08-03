@@ -1,9 +1,85 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData } from '../hooks/useSupabaseData';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq';
+
+// FAQ Form Component
+function FaqForm({
+  faq,
+  onSave,
+  onCancel
+}: {
+  faq: Partial<FaqData>,
+  onSave: (faq: any) => void,
+  onCancel: () => void
+}) {
+  const [question, setQuestion] = useState(faq.question || '');
+  const [reponse, setReponse] = useState(faq.reponse || '');
+  const [ordre, setOrdre] = useState(faq.ordre || 1);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({ ...faq, question, reponse, ordre });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded-lg border border-gray-300">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Question</label>
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="Quelle est la question ?"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Réponse</label>
+        <textarea
+          value={reponse}
+          onChange={(e) => setReponse(e.target.value)}
+          required
+          rows={4}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="La réponse à cette question..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Ordre</label>
+        <input
+          type="number"
+          value={ordre}
+          onChange={(e) => setOrdre(parseInt(e.target.value))}
+          required
+          min="1"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+        >
+          Sauvegarder
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -23,6 +99,11 @@ export default function AdminPage() {
   const [realiser, setRealiser] = useState<Partial<DemarcheRealiserData>>({});
   const [accompagner, setAccompagner] = useState<Partial<DemarcheAccompagnerData>>({});
   const [portrait, setPortrait] = useState<Partial<PortraitData>>({});
+  const [faqs, setFaqs] = useState<FaqData[]>([]);
+
+  // États pour l'édition de FAQ
+  const [editingFaq, setEditingFaq] = useState<FaqData | null>(null);
+  const [isAddingFaq, setIsAddingFaq] = useState(false);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
@@ -166,6 +247,12 @@ export default function AdminPage() {
           paragraphe2: portraitData.paragraphe_2 || '',
           paragraphe3: portraitData.paragraphe_3 || '',
         });
+      }
+
+      // Charger FAQs
+      const { data: faqsData } = await supabase.from('faqs').select('*').order('ordre', { ascending: true });
+      if (faqsData) {
+        setFaqs(faqsData);
       }
     } catch (err) {
       console.error('Erreur lors du chargement des données:', err);
@@ -322,6 +409,98 @@ export default function AdminPage() {
       setSaveMessage('✗ Erreur: ' + err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // FAQ handlers
+  const handleAddFaq = async (faq: Omit<FaqData, 'id'>) => {
+    try {
+      const { error } = await supabase.from('faqs').insert({
+        question: faq.question,
+        reponse: faq.reponse,
+        ordre: faq.ordre,
+      });
+
+      if (error) throw error;
+
+      // Recharger les FAQs
+      await loadData();
+      setIsAddingFaq(false);
+      setSaveMessage('✓ FAQ ajoutée avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleUpdateFaq = async (faq: FaqData) => {
+    try {
+      const { error } = await supabase
+        .from('faqs')
+        .update({
+          question: faq.question,
+          reponse: faq.reponse,
+          ordre: faq.ordre,
+        })
+        .eq('id', faq.id);
+
+      if (error) throw error;
+
+      // Recharger les FAQs
+      await loadData();
+      setEditingFaq(null);
+      setSaveMessage('✓ FAQ mise à jour avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleDeleteFaq = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette FAQ ?')) return;
+
+    try {
+      const { error } = await supabase.from('faqs').delete().eq('id', id);
+
+      if (error) throw error;
+
+      // Recharger les FAQs
+      await loadData();
+      setSaveMessage('✓ FAQ supprimée avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleMoveFaq = async (faqId: number, direction: 'up' | 'down') => {
+    const currentIndex = faqs.findIndex(f => f.id === faqId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= faqs.length) return;
+
+    try {
+      // Swap ordre values
+      const currentFaq = faqs[currentIndex];
+      const targetFaq = faqs[newIndex];
+
+      const { error: error1 } = await supabase
+        .from('faqs')
+        .update({ ordre: targetFaq.ordre })
+        .eq('id', currentFaq.id);
+
+      const { error: error2 } = await supabase
+        .from('faqs')
+        .update({ ordre: currentFaq.ordre })
+        .eq('id', targetFaq.id);
+
+      if (error1 || error2) throw error1 || error2;
+
+      // Recharger les FAQs
+      await loadData();
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
     }
   };
 
@@ -493,6 +672,16 @@ export default function AdminPage() {
             }`}
           >
             Portrait
+          </button>
+          <button
+            onClick={() => setActiveSection('faq')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'faq'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            FAQ
           </button>
         </div>
       </div>
@@ -1222,23 +1411,127 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Save Button */}
-          <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
-            <div>
-              {saveMessage && (
-                <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
-                  {saveMessage}
-                </span>
+          {/* FAQ Management */}
+          {activeSection === 'faq' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900">Questions Fréquentes</h2>
+                <button
+                  onClick={() => setIsAddingFaq(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                >
+                  + Ajouter une FAQ
+                </button>
+              </div>
+
+              {/* Add FAQ Form */}
+              {isAddingFaq && (
+                <FaqForm
+                  faq={{ question: '', reponse: '', ordre: faqs.length + 1 }}
+                  onSave={handleAddFaq}
+                  onCancel={() => setIsAddingFaq(false)}
+                />
               )}
+
+              {/* FAQ List */}
+              <div className="space-y-3">
+                {faqs.map((faq, index) => (
+                  <div key={faq.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    {editingFaq?.id === faq.id ? (
+                      <FaqForm
+                        faq={editingFaq}
+                        onSave={handleUpdateFaq}
+                        onCancel={() => setEditingFaq(null)}
+                      />
+                    ) : (
+                      <div>
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded">
+                                #{faq.ordre}
+                              </span>
+                              <h3 className="font-medium text-gray-900">{faq.question}</h3>
+                            </div>
+                            <p className="text-sm text-gray-600">{faq.reponse}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/* Move buttons */}
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => handleMoveFaq(faq.id, 'up')}
+                                disabled={index === 0}
+                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Monter"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                onClick={() => handleMoveFaq(faq.id, 'down')}
+                                disabled={index === faqs.length - 1}
+                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Descendre"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                            {/* Action buttons */}
+                            <button
+                              onClick={() => setEditingFaq(faq)}
+                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded transition"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFaq(faq.id)}
+                              className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {faqs.length === 0 && !isAddingFaq && (
+                  <div className="text-center py-8 text-gray-500">
+                    Aucune FAQ pour le moment. Cliquez sur "Ajouter une FAQ" pour commencer.
+                  </div>
+                )}
+              </div>
             </div>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
-            >
-              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-            </button>
-          </div>
+          )}
+
+          {/* Save Button */}
+          {activeSection !== 'faq' && (
+            <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
+              <div>
+                {saveMessage && (
+                  <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                    {saveMessage}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+              >
+                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+              </button>
+            </div>
+          )}
+
+          {/* FAQ save messages */}
+          {activeSection === 'faq' && saveMessage && (
+            <div className="mt-4">
+              <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                {saveMessage}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

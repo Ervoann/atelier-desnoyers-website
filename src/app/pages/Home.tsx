@@ -1,11 +1,11 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
-import { portfolio, faq, accompagnements, articles } from "@/app/data";
+import { portfolio, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs } from "@/app/hooks/useSupabaseData";
 
 type Projet = (typeof portfolio)[number];
 
@@ -194,6 +194,7 @@ export default function Home() {
   const { data: realiser } = useDemarcheRealiser();
   const { data: accompagner } = useDemarcheAccompagner();
   const { data: portrait } = usePortrait();
+  const { data: faqs } = useFaqs();
 
   return (
     <>
@@ -840,8 +841,8 @@ export default function Home() {
 
             {/* Accordéon à gauche */}
             <div className="md:col-span-8 border-t border-border order-2 md:order-1">
-              {faq.map((item, i) => (
-                <FaqItem key={item.q} q={item.q} a={item.a} index={i} />
+              {faqs && faqs.map((item, i) => (
+                <FaqItem key={item.id} q={item.question} a={item.reponse} index={i} />
               ))}
             </div>
 

@@ -102,6 +102,13 @@ export interface PortraitData {
   paragraphe3: string;
 }
 
+export interface FaqData {
+  id: number;
+  question: string;
+  reponse: string;
+  ordre: number;
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -413,4 +420,34 @@ export function usePortrait() {
   }, []);
 
   return { data, loading, error };
+}
+
+export function useFaqs() {
+  const [data, setData] = useState<FaqData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFaqs = async () => {
+    try {
+      const { data: result, error: supabaseError } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('ordre', { ascending: true });
+
+      if (supabaseError) throw supabaseError;
+
+      setData(result || []);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des FAQs:', err);
+      setError('Erreur de connexion à Supabase');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFaqs();
+  }, []);
+
+  return { data, loading, error, refetch: fetchFaqs };
 }
