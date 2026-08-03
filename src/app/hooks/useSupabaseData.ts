@@ -93,6 +93,15 @@ export interface DemarcheAccompagnerData {
   offre4Description: string;
 }
 
+export interface PortraitData {
+  surtitre: string;
+  titreLigne1: string;
+  titreLigne2: string;
+  paragraphe1: string;
+  paragraphe2: string;
+  paragraphe3: string;
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -359,6 +368,48 @@ export function useDemarcheAccompagner() {
     }
 
     fetchDemarcheAccompagner();
+  }, []);
+
+  return { data, loading, error };
+}
+
+export function usePortrait() {
+  const [data, setData] = useState<PortraitData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPortrait() {
+      try {
+        const { data: result, error: supabaseError } = await supabase
+          .from('portraits')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (supabaseError) throw supabaseError;
+
+        if (result) {
+          setData({
+            surtitre: result.surtitre || '',
+            titreLigne1: result.titre_ligne_1 || '',
+            titreLigne2: result.titre_ligne_2 || '',
+            paragraphe1: result.paragraphe_1 || '',
+            paragraphe2: result.paragraphe_2 || '',
+            paragraphe3: result.paragraphe_3 || '',
+          });
+        } else {
+          setError('Aucune donnée trouvée');
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération du Portrait:', err);
+        setError('Erreur de connexion à Supabase');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPortrait();
   }, []);
 
   return { data, loading, error };

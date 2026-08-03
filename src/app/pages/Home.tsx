@@ -5,7 +5,7 @@ import { portfolio, faq, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait } from "@/app/hooks/useSupabaseData";
 
 type Projet = (typeof portfolio)[number];
 
@@ -193,6 +193,7 @@ export default function Home() {
   const { data: dessiner } = useDemarcheDessiner();
   const { data: realiser } = useDemarcheRealiser();
   const { data: accompagner } = useDemarcheAccompagner();
+  const { data: portrait } = usePortrait();
 
   return (
     <>
@@ -548,29 +549,20 @@ export default function Home() {
             </div>
           </div>
           <div className="md:col-span-8 flex flex-col justify-center">
-            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-4">Portrait</p>
+            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-4">{portrait?.surtitre || 'Portrait'}</p>
             <h2 className="text-3xl md:text-4xl font-normal leading-[1.1] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
-              Le regard du designer
+              {portrait?.titreLigne1 || 'Le regard du designer'}
               <br />
-              et les gestes du jardinier.
+              {portrait?.titreLigne2 || 'et les gestes du jardinier.'}
             </h2>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5">
-              J'ai commencé à prendre soin des jardins et à en dessiner à partir de 2016.
-              Peintre et graphiste de formation, diplômé de l'École Émile Cohl, j'ai peu à peu
-              ressenti le besoin de quitter les écrans et l'atelier pour me tourner vers le vivant.
-              J'ai alors entrepris d'apprendre à le nommer, à le comprendre et à cultiver cet
-              artisanat patient qu'est l'art du jardin.
+              {portrait?.paragraphe1 || 'J\'ai commencé à prendre soin des jardins et à en dessiner à partir de 2016. Peintre et graphiste de formation, diplômé de l\'École Émile Cohl, j\'ai peu à peu ressenti le besoin de quitter les écrans et l\'atelier pour me tourner vers le vivant. J\'ai alors entrepris d\'apprendre à le nommer, à le comprendre et à cultiver cet artisanat patient qu\'est l\'art du jardin.'}
             </p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5">
-              De la botanique à la faune — auxiliaires comme parasites — en passant par l'étude
-              des sols et des différents biotopes, j'ai appris à observer, reconnaître et
-              déchiffrer ce que le terrain avait à raconter. Au fil des saisons, cette attention
-              portée au détail a nourri mon regard autant que mon émerveillement.
+              {portrait?.paragraphe2 || 'De la botanique à la faune — auxiliaires comme parasites — en passant par l\'étude des sols et des différents biotopes, j\'ai appris à observer, reconnaître et déchiffrer ce que le terrain avait à raconter. Au fil des saisons, cette attention portée au détail a nourri mon regard autant que mon émerveillement.'}
             </p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-              Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez
-              les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu
-              qui vous ressemble.
+              {portrait?.paragraphe3 || 'Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu qui vous ressemble.'}
             </p>
           </div>
         </div>

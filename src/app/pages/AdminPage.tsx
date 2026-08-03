@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData } from '../hooks/useSupabaseData';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait';
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +22,7 @@ export default function AdminPage() {
   const [dessiner, setDessiner] = useState<Partial<DemarcheDessinerData>>({});
   const [realiser, setRealiser] = useState<Partial<DemarcheRealiserData>>({});
   const [accompagner, setAccompagner] = useState<Partial<DemarcheAccompagnerData>>({});
+  const [portrait, setPortrait] = useState<Partial<PortraitData>>({});
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
@@ -151,6 +152,19 @@ export default function AdminPage() {
           offre4Titre: accompagnerData.offre_4_titre || '',
           offre4Rythme: accompagnerData.offre_4_rythme || '',
           offre4Description: accompagnerData.offre_4_description || '',
+        });
+      }
+
+      // Charger Portrait
+      const { data: portraitData } = await supabase.from('portraits').select('*').limit(1).single();
+      if (portraitData) {
+        setPortrait({
+          surtitre: portraitData.surtitre || '',
+          titreLigne1: portraitData.titre_ligne_1 || '',
+          titreLigne2: portraitData.titre_ligne_2 || '',
+          paragraphe1: portraitData.paragraphe_1 || '',
+          paragraphe2: portraitData.paragraphe_2 || '',
+          paragraphe3: portraitData.paragraphe_3 || '',
         });
       }
     } catch (err) {
@@ -284,6 +298,20 @@ export default function AdminPage() {
             offre_4_description: accompagner.offre4Description,
           })
           .eq('id', (await supabase.from('demarche_accompagners').select('id').limit(1).single()).data?.id);
+
+        if (error) throw error;
+      } else if (activeSection === 'portrait') {
+        const { error } = await supabase
+          .from('portraits')
+          .update({
+            surtitre: portrait.surtitre,
+            titre_ligne_1: portrait.titreLigne1,
+            titre_ligne_2: portrait.titreLigne2,
+            paragraphe_1: portrait.paragraphe1,
+            paragraphe_2: portrait.paragraphe2,
+            paragraphe_3: portrait.paragraphe3,
+          })
+          .eq('id', (await supabase.from('portraits').select('id').limit(1).single()).data?.id);
 
         if (error) throw error;
       }
@@ -455,6 +483,16 @@ export default function AdminPage() {
             }`}
           >
             Accompagner
+          </button>
+          <button
+            onClick={() => setActiveSection('portrait')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'portrait'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Portrait
           </button>
         </div>
       </div>
@@ -1112,6 +1150,74 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Portrait Form */}
+          {activeSection === 'portrait' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900">Portrait</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Surtitre</label>
+                <input
+                  type="text"
+                  value={portrait.surtitre || ''}
+                  onChange={(e) => setPortrait({ ...portrait, surtitre: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Titre - Ligne 1</label>
+                  <input
+                    type="text"
+                    value={portrait.titreLigne1 || ''}
+                    onChange={(e) => setPortrait({ ...portrait, titreLigne1: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Titre - Ligne 2</label>
+                  <input
+                    type="text"
+                    value={portrait.titreLigne2 || ''}
+                    onChange={(e) => setPortrait({ ...portrait, titreLigne2: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 1</label>
+                <textarea
+                  value={portrait.paragraphe1 || ''}
+                  onChange={(e) => setPortrait({ ...portrait, paragraphe1: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 2</label>
+                <textarea
+                  value={portrait.paragraphe2 || ''}
+                  onChange={(e) => setPortrait({ ...portrait, paragraphe2: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 3</label>
+                <textarea
+                  value={portrait.paragraphe3 || ''}
+                  onChange={(e) => setPortrait({ ...portrait, paragraphe3: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
               </div>
             </div>
           )}
