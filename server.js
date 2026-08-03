@@ -20,5 +20,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Site React démarré sur le port ${PORT}`);
   console.log(`📱 Site web: http://localhost:${PORT}`);
-  console.log(`\nStrapi CMS tourne séparément sur Render: https://atelier-desnoyers-strapi.onrender.com`);
+  console.log(`📊 Base de données et authentification: Supabase`);
 });
