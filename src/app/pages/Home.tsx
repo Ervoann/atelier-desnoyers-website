@@ -5,7 +5,7 @@ import { portfolio, faq, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser } from "@/app/hooks/useSupabaseData";
 
 type Projet = (typeof portfolio)[number];
 
@@ -191,6 +191,7 @@ export default function Home() {
   const { data: citation } = useCitation();
   const { data: observer } = useDemarcheObserver();
   const { data: dessiner } = useDemarcheDessiner();
+  const { data: realiser } = useDemarcheRealiser();
 
   return (
     <>
@@ -463,20 +464,16 @@ export default function Home() {
           <div className="md:col-span-5">
             <div className="text-accent mb-4"><IconRealiser /></div>
             <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>03</p>
-            <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>Réaliser</h2>
-            <p className="text-sm text-muted-foreground mb-2 font-medium">Aménagement & plantation</p>
+            <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{realiser?.titre || 'Réaliser'}</h2>
+            <p className="text-sm text-muted-foreground mb-2 font-medium">{realiser?.sousTitre || 'Aménagement & plantation'}</p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5">
-              Comme un peintre prépare sa toile, le jardin nécessite des fondations solides.
-              Le terrain est préparé, modelé si nécessaire, les réseaux mis en place et
-              les différents aménagements réalisés pour accueillir durablement les plantations.
+              {realiser?.paragraphe1 || 'Comme un peintre prépare sa toile, le jardin nécessite des fondations solides. Le terrain est préparé, modelé si nécessaire, les réseaux mis en place et les différents aménagements réalisés pour accueillir durablement les plantations.'}
             </p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5">
-              C'est le moment où le jardin entre en terre. Les végétaux sont implantés avec
-              soin, en tenant compte de leur développement futur, des équilibres écologiques
-              et des relations qu'ils tisseront entre eux au fil des saisons.
+              {realiser?.paragraphe2 || 'C\'est le moment où le jardin entre en terre. Les végétaux sont implantés avec soin, en tenant compte de leur développement futur, des équilibres écologiques et des relations qu\'ils tisseront entre eux au fil des saisons.'}
             </p>
             <p className="text-base italic text-accent" style={{ fontFamily: "'Fraunces', serif" }}>
-              Le jardin naît, mais il n'est pas encore achevé.
+              {realiser?.citation || 'Le jardin naît, mais il n\'est pas encore achevé.'}
             </p>
           </div>
           <div className="md:col-span-7">

@@ -61,6 +61,14 @@ export interface DemarcheDessinerData {
   aspect4Detail: string;
 }
 
+export interface DemarcheRealiserData {
+  titre: string;
+  sousTitre: string;
+  paragraphe1: string;
+  paragraphe2: string;
+  citation: string;
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -229,6 +237,47 @@ export function useDemarcheDessiner() {
     }
 
     fetchDemarcheDessiner();
+  }, []);
+
+  return { data, loading, error };
+}
+
+export function useDemarcheRealiser() {
+  const [data, setData] = useState<DemarcheRealiserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDemarcheRealiser() {
+      try {
+        const { data: result, error: supabaseError } = await supabase
+          .from('demarche_realisers')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (supabaseError) throw supabaseError;
+
+        if (result) {
+          setData({
+            titre: result.titre || '',
+            sousTitre: result.sous_titre || '',
+            paragraphe1: result.paragraphe_1 || '',
+            paragraphe2: result.paragraphe_2 || '',
+            citation: result.citation || '',
+          });
+        } else {
+          setError('Aucune donnée trouvée');
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération de Demarche Realiser:', err);
+        setError('Erreur de connexion à Supabase');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDemarcheRealiser();
   }, []);
 
   return { data, loading, error };

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData } from '../hooks/useSupabaseData';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser';
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [citation, setCitation] = useState<Partial<CitationData>>({});
   const [observer, setObserver] = useState<Partial<DemarcheObserverData>>({});
   const [dessiner, setDessiner] = useState<Partial<DemarcheDessinerData>>({});
+  const [realiser, setRealiser] = useState<Partial<DemarcheRealiserData>>({});
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
@@ -111,6 +112,18 @@ export default function AdminPage() {
           aspect4Detail: dessinerData.aspect_4_detail || '',
         });
       }
+
+      // Charger Realiser
+      const { data: realiserData } = await supabase.from('demarche_realisers').select('*').limit(1).single();
+      if (realiserData) {
+        setRealiser({
+          titre: realiserData.titre || '',
+          sousTitre: realiserData.sous_titre || '',
+          paragraphe1: realiserData.paragraphe_1 || '',
+          paragraphe2: realiserData.paragraphe_2 || '',
+          citation: realiserData.citation || '',
+        });
+      }
     } catch (err) {
       console.error('Erreur lors du chargement des données:', err);
     }
@@ -200,6 +213,19 @@ export default function AdminPage() {
             aspect_4_detail: dessiner.aspect4Detail,
           })
           .eq('id', (await supabase.from('demarche_dessiners').select('id').limit(1).single()).data?.id);
+
+        if (error) throw error;
+      } else if (activeSection === 'realiser') {
+        const { error } = await supabase
+          .from('demarche_realisers')
+          .update({
+            titre: realiser.titre,
+            sous_titre: realiser.sousTitre,
+            paragraphe_1: realiser.paragraphe1,
+            paragraphe_2: realiser.paragraphe2,
+            citation: realiser.citation,
+          })
+          .eq('id', (await supabase.from('demarche_realisers').select('id').limit(1).single()).data?.id);
 
         if (error) throw error;
       }
@@ -351,6 +377,16 @@ export default function AdminPage() {
             }`}
           >
             Dessiner
+          </button>
+          <button
+            onClick={() => setActiveSection('realiser')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'realiser'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Réaliser
           </button>
         </div>
       </div>
@@ -702,6 +738,64 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Realiser Form */}
+          {activeSection === 'realiser' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900">Démarche - Réaliser</h2>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                  <input
+                    type="text"
+                    value={realiser.titre || ''}
+                    onChange={(e) => setRealiser({ ...realiser, titre: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sous-titre</label>
+                  <input
+                    type="text"
+                    value={realiser.sousTitre || ''}
+                    onChange={(e) => setRealiser({ ...realiser, sousTitre: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 1</label>
+                <textarea
+                  value={realiser.paragraphe1 || ''}
+                  onChange={(e) => setRealiser({ ...realiser, paragraphe1: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 2</label>
+                <textarea
+                  value={realiser.paragraphe2 || ''}
+                  onChange={(e) => setRealiser({ ...realiser, paragraphe2: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Citation</label>
+                <textarea
+                  value={realiser.citation || ''}
+                  onChange={(e) => setRealiser({ ...realiser, citation: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
               </div>
             </div>
           )}
