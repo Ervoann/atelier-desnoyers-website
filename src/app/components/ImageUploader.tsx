@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, FolderOpen } from 'lucide-react';
+import ImageGalleryModal from './ImageGalleryModal';
 
 interface ImageUploaderProps {
   currentImageUrl?: string;
@@ -20,6 +21,7 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
   const [error, setError] = useState<string | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,9 +89,23 @@ export default function ImageUploader({
     }
   };
 
+  const handleSelectFromGallery = (url: string) => {
+    setPreview(url);
+    onImageUploaded(url);
+    setShowGallery(false);
+  };
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">{label}</label>
+
+      {/* Gallery Modal */}
+      <ImageGalleryModal
+        isOpen={showGallery}
+        onClose={() => setShowGallery(false)}
+        onSelectImage={handleSelectFromGallery}
+        bucketName={bucketName}
+      />
 
       {preview ? (
         <div className="relative">
@@ -112,22 +128,34 @@ export default function ImageUploader({
           )}
         </div>
       ) : (
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition"
-        >
-          {uploading ? (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Upload en cours...</p>
-            </div>
-          ) : (
-            <>
-              <Upload className="text-gray-400 mb-2" size={32} />
-              <p className="text-sm text-gray-600 mb-1">Cliquez pour sélectionner une image</p>
-              <p className="text-xs text-gray-400">JPG, PNG, WebP, GIF - Max 50 MB</p>
-            </>
-          )}
+        <div className="space-y-2">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition"
+          >
+            {uploading ? (
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">Upload en cours...</p>
+              </div>
+            ) : (
+              <>
+                <Upload className="text-gray-400 mb-2" size={32} />
+                <p className="text-sm text-gray-600 mb-1">Cliquez pour sélectionner une image</p>
+                <p className="text-xs text-gray-400">JPG, PNG, WebP, GIF - Max 50 MB</p>
+              </>
+            )}
+          </div>
+
+          {/* Button to open gallery */}
+          <button
+            type="button"
+            onClick={() => setShowGallery(true)}
+            className="w-full py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition flex items-center justify-center gap-2"
+          >
+            <FolderOpen size={16} />
+            Choisir depuis la galerie
+          </button>
         </div>
       )}
 

@@ -3,8 +3,10 @@ import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData } from '../hooks/useSupabaseData';
 import ImageUploader from '../components/ImageUploader';
+import ImageGalleryModal from '../components/ImageGalleryModal';
+import ImageGallery from '../components/ImageGallery';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio' | 'galerie';
 
 // Portfolio Form Component
 function PortfolioForm({
@@ -1197,6 +1199,16 @@ export default function AdminPage() {
           >
             FAQ
           </button>
+          <button
+            onClick={() => setActiveSection('galerie')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'galerie'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Galerie
+          </button>
         </div>
       </div>
 
@@ -2019,7 +2031,7 @@ export default function AdminPage() {
           )}
 
           {/* Save Button */}
-          {activeSection !== 'faq' && activeSection !== 'portfolio' && (
+          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && (
             <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
               <div>
                 {saveMessage && (
@@ -2259,6 +2271,32 @@ export default function AdminPage() {
               <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
                 {saveMessage}
               </span>
+            </div>
+          )}
+
+          {/* Galerie Section */}
+          {activeSection === 'galerie' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Galerie d'images</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Gérez toutes les images uploadées dans le bucket Supabase
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="mb-6 space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Cette galerie affiche toutes les images stockées dans votre bucket Supabase.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Pour uploader de nouvelles images, utilisez les formulaires dans l'onglet <strong>Portfolio</strong>.
+                  </p>
+                </div>
+                <ImageGallery bucketName="portfolio-images" />
+              </div>
             </div>
           )}
         </div>
