@@ -67,6 +67,12 @@ export interface DemarcheRealiserData {
   paragraphe1: string;
   paragraphe2: string;
   citation: string;
+  action1Titre: string;
+  action1Description: string;
+  action2Titre: string;
+  action2Description: string;
+  action3Titre: string;
+  action3Description: string;
 }
 
 export function useHomepage() {
@@ -265,6 +271,12 @@ export function useDemarcheRealiser() {
             paragraphe1: result.paragraphe_1 || '',
             paragraphe2: result.paragraphe_2 || '',
             citation: result.citation || '',
+            action1Titre: result.action_1_titre || '',
+            action1Description: result.action_1_description || '',
+            action2Titre: result.action_2_titre || '',
+            action2Description: result.action_2_description || '',
+            action3Titre: result.action_3_titre || '',
+            action3Description: result.action_3_description || '',
           });
         } else {
           setError('Aucune donnée trouvée');

@@ -122,6 +122,12 @@ export default function AdminPage() {
           paragraphe1: realiserData.paragraphe_1 || '',
           paragraphe2: realiserData.paragraphe_2 || '',
           citation: realiserData.citation || '',
+          action1Titre: realiserData.action_1_titre || '',
+          action1Description: realiserData.action_1_description || '',
+          action2Titre: realiserData.action_2_titre || '',
+          action2Description: realiserData.action_2_description || '',
+          action3Titre: realiserData.action_3_titre || '',
+          action3Description: realiserData.action_3_description || '',
         });
       }
     } catch (err) {
@@ -224,6 +230,12 @@ export default function AdminPage() {
             paragraphe_1: realiser.paragraphe1,
             paragraphe_2: realiser.paragraphe2,
             citation: realiser.citation,
+            action_1_titre: realiser.action1Titre,
+            action_1_description: realiser.action1Description,
+            action_2_titre: realiser.action2Titre,
+            action_2_description: realiser.action2Description,
+            action_3_titre: realiser.action3Titre,
+            action_3_description: realiser.action3Description,
           })
           .eq('id', (await supabase.from('demarche_realisers').select('id').limit(1).single()).data?.id);
 
@@ -796,6 +808,75 @@ export default function AdminPage() {
                   rows={2}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-medium text-gray-900 mb-4">Actions</h3>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 1 - Titre</label>
+                      <input
+                        type="text"
+                        value={realiser.action1Titre || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action1Titre: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 1 - Description</label>
+                      <input
+                        type="text"
+                        value={realiser.action1Description || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action1Description: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 2 - Titre</label>
+                      <input
+                        type="text"
+                        value={realiser.action2Titre || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action2Titre: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 2 - Description</label>
+                      <input
+                        type="text"
+                        value={realiser.action2Description || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action2Description: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 3 - Titre</label>
+                      <input
+                        type="text"
+                        value={realiser.action3Titre || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action3Titre: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Action 3 - Description</label>
+                      <input
+                        type="text"
+                        value={realiser.action3Description || ''}
+                        onChange={(e) => setRealiser({ ...realiser, action3Description: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

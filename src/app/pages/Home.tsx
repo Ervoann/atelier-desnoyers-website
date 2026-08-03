@@ -486,9 +486,9 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-3 gap-4 mt-4">
               {[
-                { n: "Préparer", t: "Ouvrir, nettoyer, organiser et enrichir" },
-                { n: "Acheminer", t: "Arbres, vivaces, bulbes, matériaux, décor" },
-                { n: "Implanter", t: "Avec joie et maestria" },
+                { n: realiser?.action1Titre || "Préparer", t: realiser?.action1Description || "Ouvrir, nettoyer, organiser et enrichir" },
+                { n: realiser?.action2Titre || "Acheminer", t: realiser?.action2Description || "Arbres, vivaces, bulbes, matériaux, décor" },
+                { n: realiser?.action3Titre || "Implanter", t: realiser?.action3Description || "Avec joie et maestria" },
               ].map((s) => (
                 <div key={s.n} className="bg-card p-4 border-t-[3px] border-accent/60">
                   <div className="text-base font-normal mb-1 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.n}</div>
