@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, ArrowUpRight, Play } from "lucide-react";
-import type { portfolio, Slide } from "@/app/data";
+import type { PortfolioData, PortfolioSlideData } from "@/app/hooks/useSupabaseData";
 
-type Projet = (typeof portfolio)[number];
+type Projet = PortfolioData;
+type Slide = PortfolioSlideData;
 
 interface ProjetModalProps {
   projet: Projet | null;
@@ -45,7 +46,7 @@ function SlideIcon({ slide }: { slide: Slide }) {
     );
   }
   return (
-    <img src={slide.src.replace("w=1600&h=900", "w=120&h=90")} alt="" className="w-full h-full object-cover" />
+    <img src={(slide.src || '').replace("w=1600&h=900", "w=120&h=90")} alt="" className="w-full h-full object-cover" />
   );
 }
 
@@ -53,12 +54,12 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
   const [current, setCurrent] = useState(0);
 
   const prev = useCallback(() => {
-    if (!projet) return;
+    if (!projet || !projet.slides) return;
     setCurrent((c) => (c - 1 + projet.slides.length) % projet.slides.length);
   }, [projet]);
 
   const next = useCallback(() => {
-    if (!projet) return;
+    if (!projet || !projet.slides) return;
     setCurrent((c) => (c + 1) % projet.slides.length);
   }, [projet]);
 
@@ -82,7 +83,7 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
     };
   }, [projet, prev, next, onClose]);
 
-  if (!projet) return null;
+  if (!projet || !projet.slides) return null;
 
   const slide = projet.slides[current];
 
@@ -121,9 +122,9 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
                 style={{ opacity: i === current ? 1 : 0, pointerEvents: i === current ? "auto" : "none" }}
               >
                 {s.type === "image" ? (
-                  <ImageSlide src={s.src} alt={`${projet.titre} — vue ${i + 1}`} />
+                  <ImageSlide src={s.src || ''} alt={`${projet.titre} — vue ${i + 1}`} />
                 ) : (
-                  <YoutubeSlide videoId={s.videoId} />
+                  <YoutubeSlide videoId={s.video_id || ''} />
                 )}
               </div>
             ))}
@@ -174,7 +175,7 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
               className="text-[10px] tracking-widest uppercase text-accent mb-3"
               style={{ fontFamily: "'DM Mono', monospace" }}
             >
-              {projet.type} · {projet.annee}
+              {projet.typeProjet || 'Jardin'} · {projet.annee}
             </p>
             <h2
               className="text-3xl md:text-4xl font-normal leading-[1.05] mb-1"

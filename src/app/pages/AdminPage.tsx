@@ -1,9 +1,289 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData } from '../hooks/useSupabaseData';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio';
+
+// Portfolio Form Component
+function PortfolioForm({
+  portfolio,
+  onSave,
+  onCancel
+}: {
+  portfolio: Partial<PortfolioData>,
+  onSave: (portfolio: any) => void,
+  onCancel: () => void
+}) {
+  const [slug, setSlug] = useState(portfolio.slug || '');
+  const [titre, setTitre] = useState(portfolio.titre || '');
+  const [chantierNumero, setChantierNumero] = useState(portfolio.chantierNumero || '');
+  const [lieu, setLieu] = useState(portfolio.lieu || '');
+  const [typeProjet, setTypeProjet] = useState(portfolio.typeProjet || '');
+  const [annee, setAnnee] = useState(portfolio.annee || '');
+  const [surface, setSurface] = useState(portfolio.surface || '');
+  const [imagePrincipale, setImagePrincipale] = useState(portfolio.imagePrincipale || '');
+  const [description, setDescription] = useState(portfolio.description || '');
+  const [tags, setTags] = useState((portfolio.tags || []).join(', '));
+  const [ordre, setOrdre] = useState(portfolio.ordre || 1);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      ...portfolio,
+      slug,
+      titre,
+      chantierNumero,
+      lieu,
+      typeProjet,
+      annee,
+      surface,
+      imagePrincipale,
+      description,
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      ordre
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg border-2 border-green-200">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Titre du projet *</label>
+          <input
+            type="text"
+            value={titre}
+            onChange={(e) => setTitre(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Slug (URL) *</label>
+          <input
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="mon-projet-jardin"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Chantier #</label>
+          <input
+            type="text"
+            value={chantierNumero}
+            onChange={(e) => setChantierNumero(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="65"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Année *</label>
+          <input
+            type="text"
+            value={annee}
+            onChange={(e) => setAnnee(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="2026"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Surface *</label>
+          <input
+            type="text"
+            value={surface}
+            onChange={(e) => setSurface(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="1 000 m²"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Lieu *</label>
+          <input
+            type="text"
+            value={lieu}
+            onChange={(e) => setLieu(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Caluire et Cuire"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Type de projet</label>
+          <input
+            type="text"
+            value={typeProjet}
+            onChange={(e) => setTypeProjet(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Jardin privé"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">URL Image principale *</label>
+        <input
+          type="text"
+          value={imagePrincipale}
+          onChange={(e) => setImagePrincipale(e.target.value)}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="https://..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Description / Note *</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          rows={6}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="Description détaillée du projet..."
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tags (séparés par des virgules)</label>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Vivaces, Graminées, Sol vivant"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Ordre d'affichage *</label>
+          <input
+            type="number"
+            value={ordre}
+            onChange={(e) => setOrdre(parseInt(e.target.value))}
+            required
+            min="1"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 justify-end pt-4 border-t">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+        >
+          Sauvegarder le projet
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// Slide Form Component
+function SlideForm({
+  portfolioId,
+  existingSlidesCount,
+  onAdd,
+  onCancel
+}: {
+  portfolioId: number,
+  existingSlidesCount: number,
+  onAdd: (portfolioId: number, slide: Omit<PortfolioSlideData, 'id' | 'portfolio_id'>) => void,
+  onCancel: () => void
+}) {
+  const [type, setType] = useState<'image' | 'youtube'>('image');
+  const [src, setSrc] = useState('');
+  const [videoId, setVideoId] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAdd(portfolioId, {
+      type,
+      src: type === 'image' ? src : null,
+      video_id: type === 'youtube' ? videoId : null,
+      ordre: existingSlidesCount + 1
+    });
+    setSrc('');
+    setVideoId('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 bg-green-50 p-4 rounded-lg border border-green-200">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Type de slide</label>
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value as 'image' | 'youtube')}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="image">Image</option>
+          <option value="youtube">Vidéo YouTube</option>
+        </select>
+      </div>
+
+      {type === 'image' ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">URL de l'image</label>
+          <input
+            type="text"
+            value={src}
+            onChange={(e) => setSrc(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="https://..."
+          />
+        </div>
+      ) : (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">YouTube Video ID</label>
+          <input
+            type="text"
+            value={videoId}
+            onChange={(e) => setVideoId(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="r_epbFJ231Y"
+          />
+          <p className="text-xs text-gray-500 mt-1">L'ID se trouve dans l'URL: youtube.com/watch?v=<strong>VIDEO_ID</strong></p>
+        </div>
+      )}
+
+      <div className="flex gap-2 justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 transition"
+        >
+          Ajouter
+        </button>
+      </div>
+    </form>
+  );
+}
 
 // FAQ Form Component
 function FaqForm({
@@ -100,10 +380,16 @@ export default function AdminPage() {
   const [accompagner, setAccompagner] = useState<Partial<DemarcheAccompagnerData>>({});
   const [portrait, setPortrait] = useState<Partial<PortraitData>>({});
   const [faqs, setFaqs] = useState<FaqData[]>([]);
+  const [portfolios, setPortfolios] = useState<PortfolioData[]>([]);
 
   // États pour l'édition de FAQ
   const [editingFaq, setEditingFaq] = useState<FaqData | null>(null);
   const [isAddingFaq, setIsAddingFaq] = useState(false);
+
+  // États pour l'édition de Portfolio
+  const [editingPortfolio, setEditingPortfolio] = useState<PortfolioData | null>(null);
+  const [isAddingPortfolio, setIsAddingPortfolio] = useState(false);
+  const [managingGallery, setManagingGallery] = useState<number | null>(null);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
@@ -253,6 +539,37 @@ export default function AdminPage() {
       const { data: faqsData } = await supabase.from('faqs').select('*').order('ordre', { ascending: true });
       if (faqsData) {
         setFaqs(faqsData);
+      }
+
+      // Charger Portfolios avec leurs slides
+      const { data: portfoliosData } = await supabase.from('portfolios').select('*').order('ordre', { ascending: true });
+      if (portfoliosData) {
+        const portfoliosWithSlides = await Promise.all(
+          portfoliosData.map(async (portfolio) => {
+            const { data: slidesData } = await supabase
+              .from('portfolio_slides')
+              .select('*')
+              .eq('portfolio_id', portfolio.id)
+              .order('ordre', { ascending: true });
+
+            return {
+              id: portfolio.id,
+              slug: portfolio.slug,
+              titre: portfolio.titre,
+              chantierNumero: portfolio.chantier_numero,
+              lieu: portfolio.lieu,
+              typeProjet: portfolio.type_projet,
+              annee: portfolio.annee,
+              surface: portfolio.surface,
+              imagePrincipale: portfolio.image_principale,
+              description: portfolio.description,
+              tags: portfolio.tags || [],
+              ordre: portfolio.ordre,
+              slides: slidesData || []
+            };
+          })
+        );
+        setPortfolios(portfoliosWithSlides);
       }
     } catch (err) {
       console.error('Erreur lors du chargement des données:', err);
@@ -504,6 +821,178 @@ export default function AdminPage() {
     }
   };
 
+  // Portfolio handlers
+  const handleAddPortfolio = async (portfolio: Omit<PortfolioData, 'id' | 'slides'>) => {
+    try {
+      const { data: newPortfolio, error } = await supabase.from('portfolios').insert({
+        slug: portfolio.slug,
+        titre: portfolio.titre,
+        chantier_numero: portfolio.chantierNumero,
+        lieu: portfolio.lieu,
+        type_projet: portfolio.typeProjet,
+        annee: portfolio.annee,
+        surface: portfolio.surface,
+        image_principale: portfolio.imagePrincipale,
+        description: portfolio.description,
+        tags: portfolio.tags,
+        ordre: portfolio.ordre,
+      }).select().single();
+
+      if (error) throw error;
+
+      await loadData();
+      setIsAddingPortfolio(false);
+      setSaveMessage('✓ Projet ajouté avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleUpdatePortfolio = async (portfolio: PortfolioData) => {
+    try {
+      const { error } = await supabase
+        .from('portfolios')
+        .update({
+          slug: portfolio.slug,
+          titre: portfolio.titre,
+          chantier_numero: portfolio.chantierNumero,
+          lieu: portfolio.lieu,
+          type_projet: portfolio.typeProjet,
+          annee: portfolio.annee,
+          surface: portfolio.surface,
+          image_principale: portfolio.imagePrincipale,
+          description: portfolio.description,
+          tags: portfolio.tags,
+          ordre: portfolio.ordre,
+        })
+        .eq('id', portfolio.id);
+
+      if (error) throw error;
+
+      await loadData();
+      setEditingPortfolio(null);
+      setSaveMessage('✓ Projet mis à jour avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleDeletePortfolio = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Toutes les images/vidéos seront également supprimées.')) return;
+
+    try {
+      const { error } = await supabase.from('portfolios').delete().eq('id', id);
+
+      if (error) throw error;
+
+      await loadData();
+      setSaveMessage('✓ Projet supprimé avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleMovePortfolio = async (portfolioId: number, direction: 'up' | 'down') => {
+    const currentIndex = portfolios.findIndex(p => p.id === portfolioId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= portfolios.length) return;
+
+    try {
+      const currentPortfolio = portfolios[currentIndex];
+      const targetPortfolio = portfolios[newIndex];
+
+      const { error: error1 } = await supabase
+        .from('portfolios')
+        .update({ ordre: targetPortfolio.ordre })
+        .eq('id', currentPortfolio.id);
+
+      const { error: error2 } = await supabase
+        .from('portfolios')
+        .update({ ordre: currentPortfolio.ordre })
+        .eq('id', targetPortfolio.id);
+
+      if (error1 || error2) throw error1 || error2;
+
+      await loadData();
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  // Gallery/Slides handlers
+  const handleAddSlide = async (portfolioId: number, slide: Omit<PortfolioSlideData, 'id' | 'portfolio_id'>) => {
+    try {
+      const { error } = await supabase.from('portfolio_slides').insert({
+        portfolio_id: portfolioId,
+        type: slide.type,
+        src: slide.src,
+        video_id: slide.video_id,
+        ordre: slide.ordre,
+      });
+
+      if (error) throw error;
+
+      await loadData();
+      setSaveMessage('✓ Slide ajoutée avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleDeleteSlide = async (slideId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette slide ?')) return;
+
+    try {
+      const { error } = await supabase.from('portfolio_slides').delete().eq('id', slideId);
+
+      if (error) throw error;
+
+      await loadData();
+      setSaveMessage('✓ Slide supprimée avec succès !');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
+  const handleMoveSlide = async (portfolioId: number, slideId: number, direction: 'up' | 'down') => {
+    const portfolio = portfolios.find(p => p.id === portfolioId);
+    if (!portfolio || !portfolio.slides) return;
+
+    const currentIndex = portfolio.slides.findIndex(s => s.id === slideId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= portfolio.slides.length) return;
+
+    try {
+      const currentSlide = portfolio.slides[currentIndex];
+      const targetSlide = portfolio.slides[newIndex];
+
+      const { error: error1 } = await supabase
+        .from('portfolio_slides')
+        .update({ ordre: targetSlide.ordre })
+        .eq('id', currentSlide.id);
+
+      const { error: error2 } = await supabase
+        .from('portfolio_slides')
+        .update({ ordre: currentSlide.ordre })
+        .eq('id', targetSlide.id);
+
+      if (error1 || error2) throw error1 || error2;
+
+      await loadData();
+    } catch (err: any) {
+      setSaveMessage('✗ Erreur: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -612,6 +1101,16 @@ export default function AdminPage() {
             }`}
           >
             Homepage
+          </button>
+          <button
+            onClick={() => setActiveSection('portfolio')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'portfolio'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Portfolio
           </button>
           <button
             onClick={() => setActiveSection('citation')}
@@ -1505,7 +2004,7 @@ export default function AdminPage() {
           )}
 
           {/* Save Button */}
-          {activeSection !== 'faq' && (
+          {activeSection !== 'faq' && activeSection !== 'portfolio' && (
             <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
               <div>
                 {saveMessage && (
@@ -1524,8 +2023,223 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* Portfolio Management */}
+          {activeSection === 'portfolio' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900">Gestion du Portfolio</h2>
+                <button
+                  onClick={() => setIsAddingPortfolio(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                >
+                  + Ajouter un projet
+                </button>
+              </div>
+
+              {/* Add Portfolio Form */}
+              {isAddingPortfolio && (
+                <PortfolioForm
+                  portfolio={{ slug: '', titre: '', lieu: '', annee: '', surface: '', imagePrincipale: '', description: '', tags: [], ordre: portfolios.length + 1 }}
+                  onSave={handleAddPortfolio}
+                  onCancel={() => setIsAddingPortfolio(false)}
+                />
+              )}
+
+              {/* Portfolio List */}
+              <div className="space-y-4">
+                {portfolios.map((portfolio, index) => (
+                  <div key={portfolio.id} className="border-2 border-gray-200 rounded-lg p-5 bg-gray-50">
+                    {editingPortfolio?.id === portfolio.id ? (
+                      <PortfolioForm
+                        portfolio={editingPortfolio}
+                        onSave={handleUpdatePortfolio}
+                        onCancel={() => setEditingPortfolio(null)}
+                      />
+                    ) : (
+                      <div>
+                        {/* Project Header */}
+                        <div className="flex justify-between items-start gap-4 mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded">#{portfolio.ordre}</span>
+                              {portfolio.chantierNumero && (
+                                <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">
+                                  Chantier #{portfolio.chantierNumero}
+                                </span>
+                              )}
+                              <h3 className="font-semibold text-lg text-gray-900">{portfolio.titre}</h3>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
+                              <div><strong>Lieu:</strong> {portfolio.lieu}</div>
+                              <div><strong>Année:</strong> {portfolio.annee}</div>
+                              <div><strong>Surface:</strong> {portfolio.surface}</div>
+                            </div>
+                            {portfolio.typeProjet && (
+                              <div className="text-sm text-gray-600 mb-2"><strong>Type:</strong> {portfolio.typeProjet}</div>
+                            )}
+                            <p className="text-sm text-gray-700 line-clamp-3">{portfolio.description}</p>
+                            {portfolio.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {portfolio.tags.map((tag, i) => (
+                                  <span key={i} className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/* Move buttons */}
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => handleMovePortfolio(portfolio.id, 'up')}
+                                disabled={index === 0}
+                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Monter"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                onClick={() => handleMovePortfolio(portfolio.id, 'down')}
+                                disabled={index === portfolios.length - 1}
+                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Descendre"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                            {/* Action buttons */}
+                            <button
+                              onClick={() => setEditingPortfolio(portfolio)}
+                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded transition"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => setManagingGallery(managingGallery === portfolio.id ? null : portfolio.id)}
+                              className="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded transition"
+                            >
+                              {managingGallery === portfolio.id ? 'Fermer' : 'Galerie'} ({portfolio.slides?.length || 0})
+                            </button>
+                            <button
+                              onClick={() => handleDeletePortfolio(portfolio.id)}
+                              className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Gallery Management */}
+                        {managingGallery === portfolio.id && (
+                          <div className="mt-4 pt-4 border-t-2 border-gray-300">
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="font-medium text-gray-900">Galerie d'images/vidéos</h4>
+                              <button
+                                onClick={() => {
+                                  const addingSlide = document.getElementById(`adding-slide-${portfolio.id}`);
+                                  if (addingSlide) {
+                                    addingSlide.style.display = addingSlide.style.display === 'none' ? 'block' : 'none';
+                                  }
+                                }}
+                                className="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded transition"
+                              >
+                                + Ajouter une slide
+                              </button>
+                            </div>
+
+                            {/* Add Slide Form */}
+                            <div id={`adding-slide-${portfolio.id}`} style={{ display: 'none' }} className="mb-4">
+                              <SlideForm
+                                portfolioId={portfolio.id}
+                                existingSlidesCount={portfolio.slides?.length || 0}
+                                onAdd={handleAddSlide}
+                                onCancel={() => {
+                                  const addingSlide = document.getElementById(`adding-slide-${portfolio.id}`);
+                                  if (addingSlide) addingSlide.style.display = 'none';
+                                }}
+                              />
+                            </div>
+
+                            {/* Slides List */}
+                            <div className="grid grid-cols-4 gap-3">
+                              {portfolio.slides && portfolio.slides.length > 0 ? (
+                                portfolio.slides.map((slide, slideIndex) => (
+                                  <div key={slide.id} className="relative bg-white border border-gray-300 rounded-lg p-2">
+                                    <div className="absolute top-1 left-1 bg-gray-800 bg-opacity-70 text-white text-xs px-2 py-0.5 rounded">
+                                      #{slide.ordre}
+                                    </div>
+                                    <div className="absolute top-1 right-1 flex gap-1">
+                                      <button
+                                        onClick={() => handleMoveSlide(portfolio.id, slide.id, 'up')}
+                                        disabled={slideIndex === 0}
+                                        className="bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded disabled:opacity-30"
+                                        title="Gauche"
+                                      >
+                                        ←
+                                      </button>
+                                      <button
+                                        onClick={() => handleMoveSlide(portfolio.id, slide.id, 'down')}
+                                        disabled={slideIndex === (portfolio.slides?.length || 0) - 1}
+                                        className="bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded disabled:opacity-30"
+                                        title="Droite"
+                                      >
+                                        →
+                                      </button>
+                                    </div>
+                                    {slide.type === 'image' ? (
+                                      <img src={slide.src || ''} alt={`Slide ${slide.ordre}`} className="w-full h-32 object-cover rounded mb-2" />
+                                    ) : (
+                                      <div className="w-full h-32 bg-red-100 flex items-center justify-center rounded mb-2">
+                                        <div className="text-center text-xs text-red-700">
+                                          <svg className="w-8 h-8 mx-auto mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                          </svg>
+                                          YouTube<br/>{slide.video_id}
+                                        </div>
+                                      </div>
+                                    )}
+                                    <button
+                                      onClick={() => handleDeleteSlide(slide.id)}
+                                      className="w-full text-xs text-red-600 hover:bg-red-50 py-1 rounded transition"
+                                    >
+                                      Supprimer
+                                    </button>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="col-span-4 text-center py-8 text-gray-500 text-sm">
+                                  Aucune slide. Cliquez sur "+ Ajouter une slide" pour commencer.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {portfolios.length === 0 && !isAddingPortfolio && (
+                  <div className="text-center py-8 text-gray-500">
+                    Aucun projet pour le moment. Cliquez sur "Ajouter un projet" pour commencer.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* FAQ save messages */}
           {activeSection === 'faq' && saveMessage && (
+            <div className="mt-4">
+              <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                {saveMessage}
+              </span>
+            </div>
+          )}
+
+          {/* Portfolio save messages */}
+          {activeSection === 'portfolio' && saveMessage && (
             <div className="mt-4">
               <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
                 {saveMessage}

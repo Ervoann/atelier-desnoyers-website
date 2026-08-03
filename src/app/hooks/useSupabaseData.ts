@@ -109,6 +109,31 @@ export interface FaqData {
   ordre: number;
 }
 
+export interface PortfolioSlideData {
+  id: number;
+  portfolio_id: number;
+  type: 'image' | 'youtube';
+  src: string | null;
+  video_id: string | null;
+  ordre: number;
+}
+
+export interface PortfolioData {
+  id: number;
+  slug: string;
+  titre: string;
+  chantierNumero: string | null;
+  lieu: string;
+  typeProjet: string | null;
+  annee: string;
+  surface: string;
+  imagePrincipale: string;
+  description: string;
+  tags: string[];
+  ordre: number;
+  slides?: PortfolioSlideData[];
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -450,4 +475,63 @@ export function useFaqs() {
   }, []);
 
   return { data, loading, error, refetch: fetchFaqs };
+}
+
+export function usePortfolios() {
+  const [data, setData] = useState<PortfolioData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPortfolios = async () => {
+    try {
+      const { data: portfoliosResult, error: portfoliosError } = await supabase
+        .from('portfolios')
+        .select('*')
+        .order('ordre', { ascending: true });
+
+      if (portfoliosError) throw portfoliosError;
+
+      // Récupérer les slides pour chaque portfolio
+      const portfoliosWithSlides = await Promise.all(
+        (portfoliosResult || []).map(async (portfolio) => {
+          const { data: slidesResult, error: slidesError } = await supabase
+            .from('portfolio_slides')
+            .select('*')
+            .eq('portfolio_id', portfolio.id)
+            .order('ordre', { ascending: true });
+
+          if (slidesError) throw slidesError;
+
+          return {
+            id: portfolio.id,
+            slug: portfolio.slug,
+            titre: portfolio.titre,
+            chantierNumero: portfolio.chantier_numero,
+            lieu: portfolio.lieu,
+            typeProjet: portfolio.type_projet,
+            annee: portfolio.annee,
+            surface: portfolio.surface,
+            imagePrincipale: portfolio.image_principale,
+            description: portfolio.description,
+            tags: portfolio.tags || [],
+            ordre: portfolio.ordre,
+            slides: slidesResult || []
+          };
+        })
+      );
+
+      setData(portfoliosWithSlides);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des portfolios:', err);
+      setError('Erreur de connexion à Supabase');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPortfolios();
+  }, []);
+
+  return { data, loading, error, refetch: fetchPortfolios };
 }

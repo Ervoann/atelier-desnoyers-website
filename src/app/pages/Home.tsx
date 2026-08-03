@@ -1,13 +1,14 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
-import { portfolio, accompagnements, articles } from "@/app/data";
+import { accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs, usePortfolios } from "@/app/hooks/useSupabaseData";
+import type { PortfolioData } from "@/app/hooks/useSupabaseData";
 
-type Projet = (typeof portfolio)[number];
+type Projet = PortfolioData;
 
 const IconObserver = () => (
   <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,6 +196,7 @@ export default function Home() {
   const { data: accompagner } = useDemarcheAccompagner();
   const { data: portrait } = usePortrait();
   const { data: faqs } = useFaqs();
+  const { data: portfolio } = usePortfolios();
 
   return (
     <>
@@ -291,7 +293,7 @@ export default function Home() {
 
         <div className="px-6 md:px-12 pb-20 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {portfolio.slice(0, 6).map((p) => (
+            {portfolio && portfolio.slice(0, 6).map((p) => (
               <button
                 key={p.id}
                 onClick={() => setSelectedProjet(p)}
@@ -299,7 +301,7 @@ export default function Home() {
               >
                 <div className="relative aspect-square overflow-hidden bg-muted border-t-[2px] border-accent/60">
                   <img
-                    src={p.img}
+                    src={p.imagePrincipale}
                     alt={p.titre}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
