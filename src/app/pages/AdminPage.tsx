@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData } from '../hooks/useSupabaseData';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner';
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +21,7 @@ export default function AdminPage() {
   const [observer, setObserver] = useState<Partial<DemarcheObserverData>>({});
   const [dessiner, setDessiner] = useState<Partial<DemarcheDessinerData>>({});
   const [realiser, setRealiser] = useState<Partial<DemarcheRealiserData>>({});
+  const [accompagner, setAccompagner] = useState<Partial<DemarcheAccompagnerData>>({});
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
@@ -128,6 +129,28 @@ export default function AdminPage() {
           action2Description: realiserData.action_2_description || '',
           action3Titre: realiserData.action_3_titre || '',
           action3Description: realiserData.action_3_description || '',
+        });
+      }
+
+      // Charger Accompagner
+      const { data: accompagnerData } = await supabase.from('demarche_accompagners').select('*').limit(1).single();
+      if (accompagnerData) {
+        setAccompagner({
+          titre: accompagnerData.titre || '',
+          paragraphe1: accompagnerData.paragraphe_1 || '',
+          paragraphe2: accompagnerData.paragraphe_2 || '',
+          offre1Titre: accompagnerData.offre_1_titre || '',
+          offre1Rythme: accompagnerData.offre_1_rythme || '',
+          offre1Description: accompagnerData.offre_1_description || '',
+          offre2Titre: accompagnerData.offre_2_titre || '',
+          offre2Rythme: accompagnerData.offre_2_rythme || '',
+          offre2Description: accompagnerData.offre_2_description || '',
+          offre3Titre: accompagnerData.offre_3_titre || '',
+          offre3Rythme: accompagnerData.offre_3_rythme || '',
+          offre3Description: accompagnerData.offre_3_description || '',
+          offre4Titre: accompagnerData.offre_4_titre || '',
+          offre4Rythme: accompagnerData.offre_4_rythme || '',
+          offre4Description: accompagnerData.offre_4_description || '',
         });
       }
     } catch (err) {
@@ -238,6 +261,29 @@ export default function AdminPage() {
             action_3_description: realiser.action3Description,
           })
           .eq('id', (await supabase.from('demarche_realisers').select('id').limit(1).single()).data?.id);
+
+        if (error) throw error;
+      } else if (activeSection === 'accompagner') {
+        const { error } = await supabase
+          .from('demarche_accompagners')
+          .update({
+            titre: accompagner.titre,
+            paragraphe_1: accompagner.paragraphe1,
+            paragraphe_2: accompagner.paragraphe2,
+            offre_1_titre: accompagner.offre1Titre,
+            offre_1_rythme: accompagner.offre1Rythme,
+            offre_1_description: accompagner.offre1Description,
+            offre_2_titre: accompagner.offre2Titre,
+            offre_2_rythme: accompagner.offre2Rythme,
+            offre_2_description: accompagner.offre2Description,
+            offre_3_titre: accompagner.offre3Titre,
+            offre_3_rythme: accompagner.offre3Rythme,
+            offre_3_description: accompagner.offre3Description,
+            offre_4_titre: accompagner.offre4Titre,
+            offre_4_rythme: accompagner.offre4Rythme,
+            offre_4_description: accompagner.offre4Description,
+          })
+          .eq('id', (await supabase.from('demarche_accompagners').select('id').limit(1).single()).data?.id);
 
         if (error) throw error;
       }
@@ -399,6 +445,16 @@ export default function AdminPage() {
             }`}
           >
             Réaliser
+          </button>
+          <button
+            onClick={() => setActiveSection('accompagner')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'accompagner'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Accompagner
           </button>
         </div>
       </div>
@@ -872,6 +928,185 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action3Description || ''}
                         onChange={(e) => setRealiser({ ...realiser, action3Description: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Accompagner Form */}
+          {activeSection === 'accompagner' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900">Démarche - Accompagner</h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                <input
+                  type="text"
+                  value={accompagner.titre || ''}
+                  onChange={(e) => setAccompagner({ ...accompagner, titre: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 1</label>
+                <textarea
+                  value={accompagner.paragraphe1 || ''}
+                  onChange={(e) => setAccompagner({ ...accompagner, paragraphe1: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Paragraphe 2</label>
+                <textarea
+                  value={accompagner.paragraphe2 || ''}
+                  onChange={(e) => setAccompagner({ ...accompagner, paragraphe2: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-medium text-gray-900 mb-4">Offres d'entretien</h3>
+
+                <div className="space-y-6">
+                  {/* Offre 1 */}
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Offre 1</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre1Titre || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre1Titre: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Rythme</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre1Rythme || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre1Rythme: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={accompagner.offre1Description || ''}
+                        onChange={(e) => setAccompagner({ ...accompagner, offre1Description: e.target.value })}
+                        rows={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Offre 2 */}
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Offre 2</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre2Titre || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre2Titre: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Rythme</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre2Rythme || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre2Rythme: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={accompagner.offre2Description || ''}
+                        onChange={(e) => setAccompagner({ ...accompagner, offre2Description: e.target.value })}
+                        rows={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Offre 3 */}
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Offre 3</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre3Titre || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre3Titre: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Rythme</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre3Rythme || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre3Rythme: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={accompagner.offre3Description || ''}
+                        onChange={(e) => setAccompagner({ ...accompagner, offre3Description: e.target.value })}
+                        rows={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Offre 4 */}
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Offre 4</h4>
+                    <div className="grid grid-cols-2 gap-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre4Titre || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre4Titre: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Rythme</label>
+                        <input
+                          type="text"
+                          value={accompagner.offre4Rythme || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, offre4Rythme: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={accompagner.offre4Description || ''}
+                        onChange={(e) => setAccompagner({ ...accompagner, offre4Description: e.target.value })}
+                        rows={2}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>

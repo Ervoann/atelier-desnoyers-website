@@ -75,6 +75,24 @@ export interface DemarcheRealiserData {
   action3Description: string;
 }
 
+export interface DemarcheAccompagnerData {
+  titre: string;
+  paragraphe1: string;
+  paragraphe2: string;
+  offre1Titre: string;
+  offre1Rythme: string;
+  offre1Description: string;
+  offre2Titre: string;
+  offre2Rythme: string;
+  offre2Description: string;
+  offre3Titre: string;
+  offre3Rythme: string;
+  offre3Description: string;
+  offre4Titre: string;
+  offre4Rythme: string;
+  offre4Description: string;
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -290,6 +308,57 @@ export function useDemarcheRealiser() {
     }
 
     fetchDemarcheRealiser();
+  }, []);
+
+  return { data, loading, error };
+}
+
+export function useDemarcheAccompagner() {
+  const [data, setData] = useState<DemarcheAccompagnerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDemarcheAccompagner() {
+      try {
+        const { data: result, error: supabaseError } = await supabase
+          .from('demarche_accompagners')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (supabaseError) throw supabaseError;
+
+        if (result) {
+          setData({
+            titre: result.titre || '',
+            paragraphe1: result.paragraphe_1 || '',
+            paragraphe2: result.paragraphe_2 || '',
+            offre1Titre: result.offre_1_titre || '',
+            offre1Rythme: result.offre_1_rythme || '',
+            offre1Description: result.offre_1_description || '',
+            offre2Titre: result.offre_2_titre || '',
+            offre2Rythme: result.offre_2_rythme || '',
+            offre2Description: result.offre_2_description || '',
+            offre3Titre: result.offre_3_titre || '',
+            offre3Rythme: result.offre_3_rythme || '',
+            offre3Description: result.offre_3_description || '',
+            offre4Titre: result.offre_4_titre || '',
+            offre4Rythme: result.offre_4_rythme || '',
+            offre4Description: result.offre_4_description || '',
+          });
+        } else {
+          setError('Aucune donnée trouvée');
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération de Demarche Accompagner:', err);
+        setError('Erreur de connexion à Supabase');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDemarcheAccompagner();
   }, []);
 
   return { data, loading, error };

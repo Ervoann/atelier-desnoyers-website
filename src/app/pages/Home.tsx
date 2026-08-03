@@ -5,7 +5,7 @@ import { portfolio, faq, accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner } from "@/app/hooks/useSupabaseData";
 
 type Projet = (typeof portfolio)[number];
 
@@ -192,6 +192,7 @@ export default function Home() {
   const { data: observer } = useDemarcheObserver();
   const { data: dessiner } = useDemarcheDessiner();
   const { data: realiser } = useDemarcheRealiser();
+  const { data: accompagner } = useDemarcheAccompagner();
 
   return (
     <>
@@ -507,20 +508,22 @@ export default function Home() {
             <div className="md:col-span-5">
               <div className="text-accent mb-4"><IconAccompagner /></div>
               <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>04</p>
-              <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>Accompagner</h2>
+              <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{accompagner?.titre || 'Accompagner'}</h2>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-6">
-                Un jardin est un organisme vivant en constante évolution, il nous faut
-                le laisser s'épanouir et l'aider à s'installer. Je propose un suivi
-                attentif afin d'observer son développement, d'ajuster certaines plantations
-                et de transmettre les gestes qui permettent de gagner en autonomie.
+                {accompagner?.paragraphe1 || 'Un jardin est un organisme vivant en constante évolution, il nous faut le laisser s\'épanouir et l\'aider à s\'installer. Je propose un suivi attentif afin d\'observer son développement, d\'ajuster certaines plantations et de transmettre les gestes qui permettent de gagner en autonomie.'}
               </p>
               <p className="text-sm text-foreground">
-                Voici mes <em style={{ fontFamily: "'Fraunces', serif" }}>quatre offres d'entretien</em> — à choisir selon votre rythme et votre envie de vous impliquer dans la vie du jardin.
+                {accompagner?.paragraphe2 || 'Voici mes quatre offres d\'entretien — à choisir selon votre rythme et votre envie de vous impliquer dans la vie du jardin.'}
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {accompagnements.map((a, i) => (
+            {[
+              { titre: accompagner?.offre1Titre || 'Saison', rythme: accompagner?.offre1Rythme || '2 visites / an', desc: accompagner?.offre1Description || 'Les moments essentiels. On observe les moments clés du jardin au fil de l\'année.' },
+              { titre: accompagner?.offre2Titre || 'Cycle', rythme: accompagner?.offre2Rythme || '4 visites / an', desc: accompagner?.offre2Description || 'Le rythme complet du jardin. Observer, ajuster, tailler, enrichir, conseiller. Le client participe s\'il le souhaite.' },
+              { titre: accompagner?.offre3Titre || 'Présence', rythme: accompagner?.offre3Rythme || '6 à 8 visites / an', desc: accompagner?.offre3Description || 'Un accompagnement attentif tout au long de l\'année : suivi des plantations, interventions ciblées, recommandations saisonnières, ajustements et conseils à distance.' },
+              { titre: accompagner?.offre4Titre || 'Cocréation', rythme: accompagner?.offre4Rythme || '½ journée ou journée', desc: accompagner?.offre4Description || 'Le jardin devient une œuvre commune. Je vous transmets le jardin et vous donne des outils : comprendre son sol, composer un massif naturaliste, reconnaître les végétaux, tailler sans crainte.' },
+            ].map((a, i) => (
               <div key={a.titre} className="bg-background p-7 flex flex-col border-t-[3px] border-accent/60">
                 <span className="text-xs text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</span>
                 <h3 className="text-2xl font-normal mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{a.titre}</h3>
