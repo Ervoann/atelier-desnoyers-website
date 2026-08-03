@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData } from '../hooks/useSupabaseData';
+import ImageUploader from '../components/ImageUploader';
 
 type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio';
 
@@ -131,15 +132,22 @@ function PortfolioForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">URL Image principale *</label>
-        <input
-          type="text"
-          value={imagePrincipale}
-          onChange={(e) => setImagePrincipale(e.target.value)}
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          placeholder="https://..."
+        <ImageUploader
+          currentImageUrl={imagePrincipale}
+          onImageUploaded={setImagePrincipale}
+          label="Image principale *"
+          folder="projects/main"
         />
+        <div className="mt-2">
+          <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+          <input
+            type="text"
+            value={imagePrincipale}
+            onChange={(e) => setImagePrincipale(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+            placeholder="https://... (optionnel si vous uploadez)"
+          />
+        </div>
       </div>
 
       <div>
@@ -241,15 +249,22 @@ function SlideForm({
 
       {type === 'image' ? (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">URL de l'image</label>
-          <input
-            type="text"
-            value={src}
-            onChange={(e) => setSrc(e.target.value)}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="https://..."
+          <ImageUploader
+            currentImageUrl={src}
+            onImageUploaded={setSrc}
+            label="Image de la galerie"
+            folder="projects/gallery"
           />
+          <div className="mt-2">
+            <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+            <input
+              type="text"
+              value={src}
+              onChange={(e) => setSrc(e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+              placeholder="https://... (optionnel si vous uploadez)"
+            />
+          </div>
         </div>
       ) : (
         <div>
