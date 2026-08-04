@@ -529,29 +529,22 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
 }
 
 function HeroVideo() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Auto-play was prevented
-      });
-    }
-  }, []);
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <video
-        ref={videoRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto object-cover"
-        style={{ scale: "1.5" }}
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src="/hero-video.mp4" type="video/mp4" />
-      </video>
+      <iframe
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style={{
+          scale: "1.5",
+          width: "100vw",
+          height: "56.25vw", // 16:9 aspect ratio
+          minHeight: "100vh",
+          minWidth: "177.77vh" // 16:9 aspect ratio
+        }}
+        src="https://www.youtube.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1"
+        title="Background video"
+        frameBorder="0"
+        allow="autoplay; encrypted-media"
+      />
     </div>
   );
 }
