@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData } from '../hooks/useSupabaseData';
 import ImageUploader from '../components/ImageUploader';
 import ImageGalleryModal from '../components/ImageGalleryModal';
 import ImageGallery from '../components/ImageGallery';
+import PortfolioManager from '../components/PortfolioManager';
+import FaqManager from '../components/FaqManager';
 
 type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio' | 'galerie';
 
@@ -138,7 +141,6 @@ function PortfolioForm({
           currentImageUrl={imagePrincipale}
           onImageUploaded={setImagePrincipale}
           label="Image principale *"
-          folder="projects/main"
         />
         <div className="mt-2">
           <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
@@ -255,7 +257,6 @@ function SlideForm({
             currentImageUrl={src}
             onImageUploaded={setSrc}
             label="Image de la galerie"
-            folder="projects/gallery"
           />
           <div className="mt-2">
             <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
@@ -379,11 +380,9 @@ function FaqForm({
 }
 
 export default function AdminPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<Section>('homepage');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -408,6 +407,10 @@ export default function AdminPage() {
   const [isAddingPortfolio, setIsAddingPortfolio] = useState(false);
   const [managingGallery, setManagingGallery] = useState<number | null>(null);
 
+  // État pour le mode édition des autres sections
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState<any>(null);
+
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -424,6 +427,13 @@ export default function AdminPage() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Rediriger vers /login si pas connecté
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [loading, user, navigate]);
 
   const loadData = async () => {
     try {
@@ -593,24 +603,38 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
-    }
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    navigate('/login');
+  };
+
+  const handleEdit = () => {
+    // Sauvegarder l'état actuel pour pouvoir annuler
+    setOriginalData({
+      homepage: { ...homepage },
+      citation: { ...citation },
+      observer: { ...observer },
+      dessiner: { ...dessiner },
+      realiser: { ...realiser },
+      accompagner: { ...accompagner },
+      portrait: { ...portrait },
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Restaurer les données originales
+    if (originalData) {
+      setHomepage(originalData.homepage);
+      setCitation(originalData.citation);
+      setObserver(originalData.observer);
+      setDessiner(originalData.dessiner);
+      setRealiser(originalData.realiser);
+      setAccompagner(originalData.accompagner);
+      setPortrait(originalData.portrait);
+    }
+    setIsEditing(false);
+    setOriginalData(null);
   };
 
   const handleSave = async () => {
@@ -743,6 +767,8 @@ export default function AdminPage() {
       setSaveMessage('✗ Erreur: ' + err.message);
     } finally {
       setSaving(false);
+      setIsEditing(false);
+      setOriginalData(null);
     }
   };
 
@@ -1022,69 +1048,7 @@ export default function AdminPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
-        <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-2xl shadow-xl">
-          <div>
-            <h2 className="text-center text-3xl font-bold text-gray-900">
-              Atelier Desnoyers
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Panneau d'administration
-            </p>
-          </div>
-
-          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="votre@email.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Mot de passe
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition"
-            >
-              Se connecter
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+    return null;  // Afficher rien pendant la redirection
   }
 
   return (
@@ -1215,18 +1179,63 @@ export default function AdminPage() {
       {/* Content */}
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          {/* Edit/Save Buttons */}
+          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && (
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                {activeSection === 'homepage' && 'Page d\'accueil - Hero Section'}
+                {activeSection === 'citation' && 'Citation'}
+                {activeSection === 'observer' && 'Démarche - Observer'}
+                {activeSection === 'dessiner' && 'Démarche - Dessiner'}
+                {activeSection === 'realiser' && 'Démarche - Réaliser'}
+                {activeSection === 'accompagner' && 'Démarche - Accompagner'}
+                {activeSection === 'portrait' && 'Portrait'}
+              </h2>
+              <div className="flex gap-3 items-center">
+                {saveMessage && (
+                  <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                    {saveMessage}
+                  </span>
+                )}
+                {!isEditing ? (
+                  <button
+                    onClick={handleEdit}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                  >
+                    Modifier
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+                    >
+                      {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Homepage Form */}
           {activeSection === 'homepage' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Page d'accueil - Hero Section</h2>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Surtitre</label>
                 <input
                   type="text"
                   value={homepage.heroSurtitre || ''}
                   onChange={(e) => setHomepage({ ...homepage, heroSurtitre: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"
                 />
               </div>
@@ -1237,7 +1246,8 @@ export default function AdminPage() {
                   type="text"
                   value={homepage.heroTitre || ''}
                   onChange={(e) => setHomepage({ ...homepage, heroTitre: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Des jardins comme des tableaux vivants"
                 />
               </div>
@@ -1247,8 +1257,9 @@ export default function AdminPage() {
                 <textarea
                   value={homepage.heroDescription || ''}
                   onChange={(e) => setHomepage({ ...homepage, heroDescription: e.target.value })}
+                  readOnly={!isEditing}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Je conçois des jardins naturalistes et les entretiens au fil du temps..."
                 />
               </div>
@@ -1260,7 +1271,8 @@ export default function AdminPage() {
                     type="text"
                     value={homepage.heroCtaPrincipal || ''}
                     onChange={(e) => setHomepage({ ...homepage, heroCtaPrincipal: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                     placeholder="Projet de jardin"
                   />
                 </div>
@@ -1271,7 +1283,8 @@ export default function AdminPage() {
                     type="text"
                     value={homepage.heroCtaSecondaire || ''}
                     onChange={(e) => setHomepage({ ...homepage, heroCtaSecondaire: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                     placeholder="La démarche"
                   />
                 </div>
@@ -1282,15 +1295,14 @@ export default function AdminPage() {
           {/* Citation Form */}
           {activeSection === 'citation' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Citation</h2>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Texte de la citation</label>
                 <textarea
                   value={citation.texte || ''}
                   onChange={(e) => setCitation({ ...citation, texte: e.target.value })}
+                  readOnly={!isEditing}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="Entre conception et soin..."
                 />
               </div>
@@ -1301,7 +1313,8 @@ export default function AdminPage() {
                   type="text"
                   value={citation.sousTexte || ''}
                   onChange={(e) => setCitation({ ...citation, sousTexte: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="L'histoire d'un jardin ne s'arrête pas le jour où on le plante..."
                 />
               </div>
@@ -1311,8 +1324,6 @@ export default function AdminPage() {
           {/* Observer Form */}
           {activeSection === 'observer' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Démarche - Observer</h2>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
@@ -1320,7 +1331,8 @@ export default function AdminPage() {
                     type="text"
                     value={observer.titre || ''}
                     onChange={(e) => setObserver({ ...observer, titre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
                 <div>
@@ -1329,7 +1341,8 @@ export default function AdminPage() {
                     type="text"
                     value={observer.sousTitre || ''}
                     onChange={(e) => setObserver({ ...observer, sousTitre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
               </div>
@@ -1339,8 +1352,9 @@ export default function AdminPage() {
                 <textarea
                   value={observer.paragraphe1 || ''}
                   onChange={(e) => setObserver({ ...observer, paragraphe1: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1349,8 +1363,9 @@ export default function AdminPage() {
                 <textarea
                   value={observer.paragraphe2 || ''}
                   onChange={(e) => setObserver({ ...observer, paragraphe2: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1365,7 +1380,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action1Titre || ''}
                         onChange={(e) => setObserver({ ...observer, action1Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1374,7 +1390,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action1Description || ''}
                         onChange={(e) => setObserver({ ...observer, action1Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1386,7 +1403,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action2Titre || ''}
                         onChange={(e) => setObserver({ ...observer, action2Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1395,7 +1413,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action2Description || ''}
                         onChange={(e) => setObserver({ ...observer, action2Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1407,7 +1426,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action3Titre || ''}
                         onChange={(e) => setObserver({ ...observer, action3Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1416,7 +1436,8 @@ export default function AdminPage() {
                         type="text"
                         value={observer.action3Description || ''}
                         onChange={(e) => setObserver({ ...observer, action3Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1428,8 +1449,6 @@ export default function AdminPage() {
           {/* Dessiner Form */}
           {activeSection === 'dessiner' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Démarche - Dessiner</h2>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
@@ -1437,7 +1456,8 @@ export default function AdminPage() {
                     type="text"
                     value={dessiner.titre || ''}
                     onChange={(e) => setDessiner({ ...dessiner, titre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
                 <div>
@@ -1446,7 +1466,8 @@ export default function AdminPage() {
                     type="text"
                     value={dessiner.sousTitre || ''}
                     onChange={(e) => setDessiner({ ...dessiner, sousTitre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
               </div>
@@ -1456,8 +1477,9 @@ export default function AdminPage() {
                 <textarea
                   value={dessiner.citation || ''}
                   onChange={(e) => setDessiner({ ...dessiner, citation: e.target.value })}
+                  readOnly={!isEditing}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1466,8 +1488,9 @@ export default function AdminPage() {
                 <textarea
                   value={dessiner.paragraphe || ''}
                   onChange={(e) => setDessiner({ ...dessiner, paragraphe: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1482,7 +1505,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect1Titre || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect1Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1491,7 +1515,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect1Detail || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect1Detail: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1503,7 +1528,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect2Titre || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect2Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1512,7 +1538,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect2Detail || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect2Detail: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1524,7 +1551,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect3Titre || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect3Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1533,7 +1561,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect3Detail || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect3Detail: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1545,7 +1574,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect4Titre || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect4Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1554,7 +1584,8 @@ export default function AdminPage() {
                         type="text"
                         value={dessiner.aspect4Detail || ''}
                         onChange={(e) => setDessiner({ ...dessiner, aspect4Detail: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1566,8 +1597,6 @@ export default function AdminPage() {
           {/* Realiser Form */}
           {activeSection === 'realiser' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Démarche - Réaliser</h2>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
@@ -1575,7 +1604,8 @@ export default function AdminPage() {
                     type="text"
                     value={realiser.titre || ''}
                     onChange={(e) => setRealiser({ ...realiser, titre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
                 <div>
@@ -1584,7 +1614,8 @@ export default function AdminPage() {
                     type="text"
                     value={realiser.sousTitre || ''}
                     onChange={(e) => setRealiser({ ...realiser, sousTitre: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
               </div>
@@ -1594,8 +1625,9 @@ export default function AdminPage() {
                 <textarea
                   value={realiser.paragraphe1 || ''}
                   onChange={(e) => setRealiser({ ...realiser, paragraphe1: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1604,8 +1636,9 @@ export default function AdminPage() {
                 <textarea
                   value={realiser.paragraphe2 || ''}
                   onChange={(e) => setRealiser({ ...realiser, paragraphe2: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1614,8 +1647,9 @@ export default function AdminPage() {
                 <textarea
                   value={realiser.citation || ''}
                   onChange={(e) => setRealiser({ ...realiser, citation: e.target.value })}
+                  readOnly={!isEditing}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1630,7 +1664,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action1Titre || ''}
                         onChange={(e) => setRealiser({ ...realiser, action1Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1639,7 +1674,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action1Description || ''}
                         onChange={(e) => setRealiser({ ...realiser, action1Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1651,7 +1687,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action2Titre || ''}
                         onChange={(e) => setRealiser({ ...realiser, action2Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1660,7 +1697,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action2Description || ''}
                         onChange={(e) => setRealiser({ ...realiser, action2Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1672,7 +1710,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action3Titre || ''}
                         onChange={(e) => setRealiser({ ...realiser, action3Titre: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                     <div>
@@ -1681,7 +1720,8 @@ export default function AdminPage() {
                         type="text"
                         value={realiser.action3Description || ''}
                         onChange={(e) => setRealiser({ ...realiser, action3Description: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        readOnly={!isEditing}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1693,15 +1733,14 @@ export default function AdminPage() {
           {/* Accompagner Form */}
           {activeSection === 'accompagner' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Démarche - Accompagner</h2>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
                 <input
                   type="text"
                   value={accompagner.titre || ''}
                   onChange={(e) => setAccompagner({ ...accompagner, titre: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1710,8 +1749,9 @@ export default function AdminPage() {
                 <textarea
                   value={accompagner.paragraphe1 || ''}
                   onChange={(e) => setAccompagner({ ...accompagner, paragraphe1: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1720,8 +1760,9 @@ export default function AdminPage() {
                 <textarea
                   value={accompagner.paragraphe2 || ''}
                   onChange={(e) => setAccompagner({ ...accompagner, paragraphe2: e.target.value })}
+                  readOnly={!isEditing}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1739,7 +1780,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre1Titre || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre1Titre: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                       <div>
@@ -1748,7 +1790,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre1Rythme || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre1Rythme: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     </div>
@@ -1757,8 +1800,9 @@ export default function AdminPage() {
                       <textarea
                         value={accompagner.offre1Description || ''}
                         onChange={(e) => setAccompagner({ ...accompagner, offre1Description: e.target.value })}
+                        readOnly={!isEditing}
                         rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1773,7 +1817,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre2Titre || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre2Titre: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                       <div>
@@ -1782,7 +1827,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre2Rythme || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre2Rythme: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     </div>
@@ -1791,8 +1837,9 @@ export default function AdminPage() {
                       <textarea
                         value={accompagner.offre2Description || ''}
                         onChange={(e) => setAccompagner({ ...accompagner, offre2Description: e.target.value })}
+                        readOnly={!isEditing}
                         rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1807,7 +1854,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre3Titre || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre3Titre: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                       <div>
@@ -1816,7 +1864,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre3Rythme || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre3Rythme: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     </div>
@@ -1825,8 +1874,9 @@ export default function AdminPage() {
                       <textarea
                         value={accompagner.offre3Description || ''}
                         onChange={(e) => setAccompagner({ ...accompagner, offre3Description: e.target.value })}
+                        readOnly={!isEditing}
                         rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1841,7 +1891,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre4Titre || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre4Titre: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                       <div>
@@ -1850,7 +1901,8 @@ export default function AdminPage() {
                           type="text"
                           value={accompagner.offre4Rythme || ''}
                           onChange={(e) => setAccompagner({ ...accompagner, offre4Rythme: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          readOnly={!isEditing}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     </div>
@@ -1859,8 +1911,9 @@ export default function AdminPage() {
                       <textarea
                         value={accompagner.offre4Description || ''}
                         onChange={(e) => setAccompagner({ ...accompagner, offre4Description: e.target.value })}
+                        readOnly={!isEditing}
                         rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
                   </div>
@@ -1872,15 +1925,14 @@ export default function AdminPage() {
           {/* Portrait Form */}
           {activeSection === 'portrait' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Portrait</h2>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Surtitre</label>
                 <input
                   type="text"
                   value={portrait.surtitre || ''}
                   onChange={(e) => setPortrait({ ...portrait, surtitre: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1891,7 +1943,8 @@ export default function AdminPage() {
                     type="text"
                     value={portrait.titreLigne1 || ''}
                     onChange={(e) => setPortrait({ ...portrait, titreLigne1: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
                 <div>
@@ -1900,7 +1953,8 @@ export default function AdminPage() {
                     type="text"
                     value={portrait.titreLigne2 || ''}
                     onChange={(e) => setPortrait({ ...portrait, titreLigne2: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    readOnly={!isEditing}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   />
                 </div>
               </div>
@@ -1910,8 +1964,9 @@ export default function AdminPage() {
                 <textarea
                   value={portrait.paragraphe1 || ''}
                   onChange={(e) => setPortrait({ ...portrait, paragraphe1: e.target.value })}
+                  readOnly={!isEditing}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1920,8 +1975,9 @@ export default function AdminPage() {
                 <textarea
                   value={portrait.paragraphe2 || ''}
                   onChange={(e) => setPortrait({ ...portrait, paragraphe2: e.target.value })}
+                  readOnly={!isEditing}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -1930,8 +1986,9 @@ export default function AdminPage() {
                 <textarea
                   value={portrait.paragraphe3 || ''}
                   onChange={(e) => setPortrait({ ...portrait, paragraphe3: e.target.value })}
+                  readOnly={!isEditing}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
             </div>
@@ -1939,321 +1996,12 @@ export default function AdminPage() {
 
           {/* FAQ Management */}
           {activeSection === 'faq' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Questions Fréquentes</h2>
-                <button
-                  onClick={() => setIsAddingFaq(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                >
-                  + Ajouter une FAQ
-                </button>
-              </div>
-
-              {/* Add FAQ Form */}
-              {isAddingFaq && (
-                <FaqForm
-                  faq={{ question: '', reponse: '', ordre: faqs.length + 1 }}
-                  onSave={handleAddFaq}
-                  onCancel={() => setIsAddingFaq(false)}
-                />
-              )}
-
-              {/* FAQ List */}
-              <div className="space-y-3">
-                {faqs.map((faq, index) => (
-                  <div key={faq.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    {editingFaq?.id === faq.id ? (
-                      <FaqForm
-                        faq={editingFaq}
-                        onSave={handleUpdateFaq}
-                        onCancel={() => setEditingFaq(null)}
-                      />
-                    ) : (
-                      <div>
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded">
-                                #{faq.ordre}
-                              </span>
-                              <h3 className="font-medium text-gray-900">{faq.question}</h3>
-                            </div>
-                            <p className="text-sm text-gray-600">{faq.reponse}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/* Move buttons */}
-                            <div className="flex flex-col gap-1">
-                              <button
-                                onClick={() => handleMoveFaq(faq.id, 'up')}
-                                disabled={index === 0}
-                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Monter"
-                              >
-                                ▲
-                              </button>
-                              <button
-                                onClick={() => handleMoveFaq(faq.id, 'down')}
-                                disabled={index === faqs.length - 1}
-                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Descendre"
-                              >
-                                ▼
-                              </button>
-                            </div>
-                            {/* Action buttons */}
-                            <button
-                              onClick={() => setEditingFaq(faq)}
-                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded transition"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => handleDeleteFaq(faq.id)}
-                              className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition"
-                            >
-                              Supprimer
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {faqs.length === 0 && !isAddingFaq && (
-                  <div className="text-center py-8 text-gray-500">
-                    Aucune FAQ pour le moment. Cliquez sur "Ajouter une FAQ" pour commencer.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Save Button */}
-          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && (
-            <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
-              <div>
-                {saveMessage && (
-                  <span className={`text-sm ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
-                    {saveMessage}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
-              >
-                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-              </button>
-            </div>
+            <FaqManager faqs={faqs} onReload={loadData} />
           )}
 
           {/* Portfolio Management */}
           {activeSection === 'portfolio' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Gestion du Portfolio</h2>
-                <button
-                  onClick={() => setIsAddingPortfolio(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                >
-                  + Ajouter un projet
-                </button>
-              </div>
-
-              {/* Add Portfolio Form */}
-              {isAddingPortfolio && (
-                <PortfolioForm
-                  portfolio={{ slug: '', titre: '', lieu: '', annee: '', surface: '', imagePrincipale: '', description: '', tags: [], ordre: portfolios.length + 1 }}
-                  onSave={handleAddPortfolio}
-                  onCancel={() => setIsAddingPortfolio(false)}
-                />
-              )}
-
-              {/* Portfolio List */}
-              <div className="space-y-4">
-                {portfolios.map((portfolio, index) => (
-                  <div key={portfolio.id} className="border-2 border-gray-200 rounded-lg p-5 bg-gray-50">
-                    {editingPortfolio?.id === portfolio.id ? (
-                      <PortfolioForm
-                        portfolio={editingPortfolio}
-                        onSave={handleUpdatePortfolio}
-                        onCancel={() => setEditingPortfolio(null)}
-                      />
-                    ) : (
-                      <div>
-                        {/* Project Header */}
-                        <div className="flex justify-between items-start gap-4 mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded">#{portfolio.ordre}</span>
-                              {portfolio.chantierNumero && (
-                                <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded">
-                                  Chantier #{portfolio.chantierNumero}
-                                </span>
-                              )}
-                              <h3 className="font-semibold text-lg text-gray-900">{portfolio.titre}</h3>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
-                              <div><strong>Lieu:</strong> {portfolio.lieu}</div>
-                              <div><strong>Année:</strong> {portfolio.annee}</div>
-                              <div><strong>Surface:</strong> {portfolio.surface}</div>
-                            </div>
-                            {portfolio.typeProjet && (
-                              <div className="text-sm text-gray-600 mb-2"><strong>Type:</strong> {portfolio.typeProjet}</div>
-                            )}
-                            <p className="text-sm text-gray-700 line-clamp-3">{portfolio.description}</p>
-                            {portfolio.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {portfolio.tags.map((tag, i) => (
-                                  <span key={i} className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/* Move buttons */}
-                            <div className="flex flex-col gap-1">
-                              <button
-                                onClick={() => handleMovePortfolio(portfolio.id, 'up')}
-                                disabled={index === 0}
-                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Monter"
-                              >
-                                ▲
-                              </button>
-                              <button
-                                onClick={() => handleMovePortfolio(portfolio.id, 'down')}
-                                disabled={index === portfolios.length - 1}
-                                className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Descendre"
-                              >
-                                ▼
-                              </button>
-                            </div>
-                            {/* Action buttons */}
-                            <button
-                              onClick={() => setEditingPortfolio(portfolio)}
-                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded transition"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => setManagingGallery(managingGallery === portfolio.id ? null : portfolio.id)}
-                              className="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded transition"
-                            >
-                              {managingGallery === portfolio.id ? 'Fermer' : 'Galerie'} ({portfolio.slides?.length || 0})
-                            </button>
-                            <button
-                              onClick={() => handleDeletePortfolio(portfolio.id)}
-                              className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition"
-                            >
-                              Supprimer
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Gallery Management */}
-                        {managingGallery === portfolio.id && (
-                          <div className="mt-4 pt-4 border-t-2 border-gray-300">
-                            <div className="flex justify-between items-center mb-3">
-                              <h4 className="font-medium text-gray-900">Galerie d'images/vidéos</h4>
-                              <button
-                                onClick={() => {
-                                  const addingSlide = document.getElementById(`adding-slide-${portfolio.id}`);
-                                  if (addingSlide) {
-                                    addingSlide.style.display = addingSlide.style.display === 'none' ? 'block' : 'none';
-                                  }
-                                }}
-                                className="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded transition"
-                              >
-                                + Ajouter une slide
-                              </button>
-                            </div>
-
-                            {/* Add Slide Form */}
-                            <div id={`adding-slide-${portfolio.id}`} style={{ display: 'none' }} className="mb-4">
-                              <SlideForm
-                                portfolioId={portfolio.id}
-                                existingSlidesCount={portfolio.slides?.length || 0}
-                                onAdd={handleAddSlide}
-                                onCancel={() => {
-                                  const addingSlide = document.getElementById(`adding-slide-${portfolio.id}`);
-                                  if (addingSlide) addingSlide.style.display = 'none';
-                                }}
-                              />
-                            </div>
-
-                            {/* Slides List */}
-                            <div className="grid grid-cols-4 gap-3">
-                              {portfolio.slides && portfolio.slides.length > 0 ? (
-                                portfolio.slides.map((slide, slideIndex) => (
-                                  <div key={slide.id} className="relative bg-white border border-gray-300 rounded-lg p-2">
-                                    <div className="absolute top-1 left-1 bg-gray-800 bg-opacity-70 text-white text-xs px-2 py-0.5 rounded">
-                                      #{slide.ordre}
-                                    </div>
-                                    <div className="absolute top-1 right-1 flex gap-1">
-                                      <button
-                                        onClick={() => handleMoveSlide(portfolio.id, slide.id, 'up')}
-                                        disabled={slideIndex === 0}
-                                        className="bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded disabled:opacity-30"
-                                        title="Gauche"
-                                      >
-                                        ←
-                                      </button>
-                                      <button
-                                        onClick={() => handleMoveSlide(portfolio.id, slide.id, 'down')}
-                                        disabled={slideIndex === (portfolio.slides?.length || 0) - 1}
-                                        className="bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded disabled:opacity-30"
-                                        title="Droite"
-                                      >
-                                        →
-                                      </button>
-                                    </div>
-                                    {slide.type === 'image' ? (
-                                      <img src={slide.src || ''} alt={`Slide ${slide.ordre}`} className="w-full h-32 object-cover rounded mb-2" />
-                                    ) : (
-                                      <div className="w-full h-32 bg-red-100 flex items-center justify-center rounded mb-2">
-                                        <div className="text-center text-xs text-red-700">
-                                          <svg className="w-8 h-8 mx-auto mb-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                          </svg>
-                                          YouTube<br/>{slide.video_id}
-                                        </div>
-                                      </div>
-                                    )}
-                                    <button
-                                      onClick={() => handleDeleteSlide(slide.id)}
-                                      className="w-full text-xs text-red-600 hover:bg-red-50 py-1 rounded transition"
-                                    >
-                                      Supprimer
-                                    </button>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="col-span-4 text-center py-8 text-gray-500 text-sm">
-                                  Aucune slide. Cliquez sur "+ Ajouter une slide" pour commencer.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {portfolios.length === 0 && !isAddingPortfolio && (
-                  <div className="text-center py-8 text-gray-500">
-                    Aucun projet pour le moment. Cliquez sur "Ajouter un projet" pour commencer.
-                  </div>
-                )}
-              </div>
-            </div>
+            <PortfolioManager portfolios={portfolios} onReload={loadData} />
           )}
 
           {/* FAQ save messages */}
@@ -2295,7 +2043,7 @@ export default function AdminPage() {
                     Pour uploader de nouvelles images, utilisez les formulaires dans l'onglet <strong>Portfolio</strong>.
                   </p>
                 </div>
-                <ImageGallery bucketName="portfolio-images" />
+                <ImageGallery bucketName="portfolios" />
               </div>
             </div>
           )}

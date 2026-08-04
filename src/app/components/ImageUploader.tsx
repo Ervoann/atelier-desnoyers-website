@@ -15,8 +15,8 @@ export default function ImageUploader({
   currentImageUrl,
   onImageUploaded,
   label = "Image",
-  bucketName = 'portfolio-images',
-  folder = 'projects'
+  bucketName = 'portfolios',
+  folder = ''
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
@@ -51,7 +51,9 @@ export default function ImageUploader({
 
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileName = folder
+        ? `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+        : `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       // Upload to Supabase Storage
       const { data, error: uploadError } = await supabase.storage

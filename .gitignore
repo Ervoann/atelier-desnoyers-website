@@ -48,3 +48,4 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 public/hero-video.mp4
+dist/hero-video.mp4

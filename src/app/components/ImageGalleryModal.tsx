@@ -20,7 +20,7 @@ export default function ImageGalleryModal({
   isOpen,
   onClose,
   onSelectImage,
-  bucketName = 'portfolio-images'
+  bucketName = 'portfolios'
 }: ImageGalleryModalProps) {
   const [images, setImages] = useState<StorageImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,60 +36,34 @@ export default function ImageGalleryModal({
   const loadImages = async () => {
     setLoading(true);
     try {
+      // List all files at the root of the bucket
       const { data: files, error } = await supabase.storage
         .from(bucketName)
         .list('', {
           limit: 1000,
-          offset: 0,
           sortBy: { column: 'created_at', order: 'desc' }
         });
 
-      if (error) throw error;
-
-      // Get all files recursively from all folders
-      const allFiles: StorageImage[] = [];
-
-      // List files in projects/main
-      const { data: mainFiles } = await supabase.storage
-        .from(bucketName)
-        .list('projects/main', {
-          limit: 1000,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-
-      // List files in projects/gallery
-      const { data: galleryFiles } = await supabase.storage
-        .from(bucketName)
-        .list('projects/gallery', {
-          limit: 1000,
-          sortBy: { column: 'created_at', order: 'desc' }
-        });
-
-      // Process main files
-      if (mainFiles) {
-        for (const file of mainFiles) {
-          const { data: { publicUrl } } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(`projects/main/${file.name}`);
-
-          allFiles.push({
-            name: `projects/main/${file.name}`,
-            url: publicUrl,
-            size: file.metadata?.size || 0,
-            createdAt: file.created_at || ''
-          });
-        }
+      if (error) {
+        console.error('Error listing files:', error);
+        setImages([]);
+        return;
       }
 
-      // Process gallery files
-      if (galleryFiles) {
-        for (const file of galleryFiles) {
+      const allFiles: StorageImage[] = [];
+
+      // Process all files
+      if (files) {
+        for (const file of files) {
+          // Skip folders
+          if (file.id === null) continue;
+
           const { data: { publicUrl } } = supabase.storage
             .from(bucketName)
-            .getPublicUrl(`projects/gallery/${file.name}`);
+            .getPublicUrl(file.name);
 
           allFiles.push({
-            name: `projects/gallery/${file.name}`,
+            name: file.name,
             url: publicUrl,
             size: file.metadata?.size || 0,
             createdAt: file.created_at || ''

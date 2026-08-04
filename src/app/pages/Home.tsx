@@ -530,7 +530,7 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
 
 function HeroVideo() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden">
       <iframe
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
@@ -540,11 +540,14 @@ function HeroVideo() {
           minHeight: "100vh",
           minWidth: "177.77vh" // 16:9 aspect ratio
         }}
-        src="https://www.youtube.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1"
+        src="https://www.youtube-nocookie.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0"
         title="Background video"
         frameBorder="0"
-        allow="autoplay; encrypted-media"
+        allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        loading="eager"
       />
+      {/* Overlay pour bloquer TOUS les clics et masquer les contrôles YouTube */}
+      <div className="absolute inset-0 z-10" style={{ pointerEvents: 'all', cursor: 'default' }} />
     </div>
   );
 }
