@@ -1,6 +1,7 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
+import { motion } from "framer-motion";
 import { accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
@@ -203,17 +204,30 @@ export default function Home() {
       <ProjetModal projet={selectedProjet} onClose={() => setSelectedProjet(null)} />
 
       {/* HERO — full screen video */}
-      <section className="relative h-screen min-h-[600px] flex items-end overflow-hidden bg-[#1a1f16]">
+      <section className="relative h-screen min-h-[700px] flex items-end overflow-hidden bg-[#1a1f16]">
         <HeroVideo />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 pb-16 md:pb-24">
-          <div className="grid md:grid-cols-12 items-end gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative w-full max-w-6xl mx-auto px-6 md:px-12 pb-20 md:pb-24"
+        >
+          <div className="grid md:grid-cols-12 items-end gap-10 md:gap-8">
             <div className="md:col-span-8">
-              <p className="text-xs tracking-widest uppercase text-white/50 mb-5">
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="text-xs tracking-widest uppercase text-white/50 mb-6 md:mb-5"
+              >
                 {loading ? "Chargement..." : homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"}
-              </p>
-              <h1
-                className="text-5xl md:text-7xl lg:text-8xl font-normal leading-[1.02] text-white mb-6"
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-normal leading-[1.05] text-white mb-6 md:mb-8"
                 style={{ fontFamily: "'Fraunces', serif" }}
               >
                 {loading ? (
@@ -235,44 +249,60 @@ export default function Home() {
                     <em>tableaux vivants.</em>
                   </>
                 )}
-              </h1>
+              </motion.h1>
             </div>
-            <div className="md:col-span-4 md:pb-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="md:col-span-4 md:pb-2"
+            >
               <img
                 src={logoBlancSrc}
                 alt="Atelier DESNOYERS"
-                style={{ width: "220px", display: "block", marginBottom: "2rem" }}
+                className="w-48 md:w-56 mb-6 md:mb-8"
               />
-              <p className="text-sm text-white/60 leading-relaxed mb-8">
+              <p className="text-sm md:text-base text-white/70 leading-relaxed mb-8 md:mb-10">
                 {loading ? "Chargement..." : homepage?.heroDescription || "Je conçois des jardins naturalistes et les accompagne dans le temps. Entre conception et soin, créer des lieux vivants, sensibles et durables."}
               </p>
               <div className="flex flex-col sm:flex-row md:flex-col gap-3">
                 <a
                   href="#contact"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-primary text-xs tracking-widest uppercase hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-primary text-xs tracking-widest uppercase hover:opacity-90 transition-opacity"
                 >
                   {homepage?.heroCtaPrincipal || "Projet de jardin"} <ArrowUpRight size={12} />
                 </a>
                 <a
                   href="#observer"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/30 text-white text-xs tracking-widest uppercase hover:border-white/70 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 text-white text-xs tracking-widest uppercase hover:border-white/70 transition-colors"
                 >
                   {homepage?.heroCtaSecondaire || "La démarche"}
                 </a>
               </div>
-            </div>
+            </motion.div>
           </div>
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40"
+          >
             <span className="text-[10px] tracking-widest uppercase">Défiler</span>
             <div className="w-px h-8 bg-white/20" />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* PORTFOLIO */}
-      <section className="border-t border-border overflow-hidden">
-        <div className="px-6 md:px-12 py-16 max-w-6xl mx-auto">
-          <div className="flex items-end justify-between mb-10">
+      <section className="border-t border-border overflow-hidden py-20 md:py-32">
+        <div className="px-6 md:px-12 max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="flex items-end justify-between mb-12 md:mb-16"
+          >
             <div>
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Réalisations</p>
               <h2
@@ -288,14 +318,16 @@ export default function Home() {
             >
               Votre projet <ArrowUpRight size={14} />
             </a>
-          </div>
-        </div>
+          </motion.div>
 
-        <div className="px-6 md:px-12 pb-20 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {portfolio && portfolio.slice(0, 6).map((p) => (
-              <button
+            {portfolio && portfolio.slice(0, 6).map((p, index) => (
+              <motion.button
                 key={p.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setSelectedProjet(p)}
                 className="group flex flex-col text-left"
               >
@@ -329,22 +361,32 @@ export default function Home() {
                     {p.annee}
                   </span>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
       </section>
 
       {/* CITATION */}
-      <section className="border-t border-b border-border bg-card">
-        <div className="max-w-4xl mx-auto px-6 md:px-12 py-16 text-center">
-          <p
+      <section className="border-t border-b border-border bg-card py-20 md:py-28">
+        <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
             className="text-2xl md:text-3xl leading-relaxed text-accent italic"
             style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}
           >
             {citation?.texte || '"Entre conception et soin, mon travail consiste à créer des jardins vivants, sensibles et durables, où les plantes composent au fil des saisons de véritables tableaux en mouvement."'}
-          </p>
-          <p className="mt-6 text-xs tracking-widest uppercase text-muted-foreground">
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="mt-8 text-xs tracking-widest uppercase text-muted-foreground"
+          >
             {citation?.sousTexte ? (
               citation.sousTexte.split('\n').map((line, i) => (
                 <span key={i}>
@@ -359,14 +401,20 @@ export default function Home() {
                 C'est là que son histoire commence.
               </>
             )}
-          </p>
+          </motion.p>
         </div>
       </section>
 
       {/* OBSERVER */}
-      <section id="observer" className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+      <section id="observer" className="max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40">
         <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
-          <div className="md:col-span-5">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-5"
+          >
             <div className="text-accent mb-4"><IconObserver /></div>
             <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>01</p>
             <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
@@ -381,8 +429,14 @@ export default function Home() {
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
               {observer?.paragraphe2 || "Avant toute intervention, il s'agit de comprendre. Un jardin existe souvent déjà en puissance."}
             </p>
-          </div>
-          <div className="md:col-span-7">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-7"
+          >
             <div className="aspect-[4/3] overflow-hidden bg-muted mb-6 border-t-[3px] border-accent/60">
               <img
                 src="https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=675&fit=crop&auto=format"
@@ -399,22 +453,35 @@ export default function Home() {
                 { verb: "Arpenter", desc: "Mesurer, topographier, analyser" },
                 { verb: "Débusquer", desc: "Relever les plantes bio-indicatrices" },
                 { verb: "S'imprégner", desc: "Laisser infuser pour faire éclore le concept" },
-              ]).map((s) => (
-                <div key={s.verb} className="bg-card p-4 border-t-[3px] border-accent/60">
+              ]).map((s, index) => (
+                <motion.div
+                  key={s.verb}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-card p-4 border-t-[3px] border-accent/60"
+                >
                   <div className="text-base font-normal mb-1 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.verb}</div>
                   <div className="text-xs text-muted-foreground leading-relaxed">{s.desc}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* DESSINER */}
       <section id="dessiner" className="border-t border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40">
           <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
-            <div className="md:col-span-7 order-2 md:order-1">
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
+              className="md:col-span-7 order-2 md:order-1"
+            >
               <div className="aspect-[4/3] overflow-hidden bg-muted mb-6 border-t-[3px] border-accent/60">
                 <img
                   src="https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=675&fit=crop&auto=format"
@@ -427,8 +494,14 @@ export default function Home() {
                   {dessiner?.citation || '"À l\'origine, dessin et dessein sont le même mot. Le trait visible naît d\'une intention invisible."'}
                 </p>
               </div>
-            </div>
-            <div className="md:col-span-5 order-1 md:order-2">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
+              className="md:col-span-5 order-1 md:order-2"
+            >
               <div className="text-accent mb-4"><IconDessiner /></div>
               <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>02</p>
               <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
@@ -458,15 +531,21 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* RÉALISER */}
-      <section id="realiser" className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+      <section id="realiser" className="max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40">
         <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
-          <div className="md:col-span-5">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-5"
+          >
             <div className="text-accent mb-4"><IconRealiser /></div>
             <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>03</p>
             <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{realiser?.titre || 'Réaliser'}</h2>
@@ -480,8 +559,14 @@ export default function Home() {
             <p className="text-base italic text-accent" style={{ fontFamily: "'Fraunces', serif" }}>
               {realiser?.citation || 'Le jardin naît, mais il n\'est pas encore achevé.'}
             </p>
-          </div>
-          <div className="md:col-span-7">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-7"
+          >
             <div className="aspect-[16/10] overflow-hidden bg-muted border-t-[3px] border-accent/60">
               <img
                 src="https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=562&fit=crop&auto=format"
@@ -494,22 +579,35 @@ export default function Home() {
                 { n: realiser?.action1Titre || "Préparer", t: realiser?.action1Description || "Ouvrir, nettoyer, organiser et enrichir" },
                 { n: realiser?.action2Titre || "Acheminer", t: realiser?.action2Description || "Arbres, vivaces, bulbes, matériaux, décor" },
                 { n: realiser?.action3Titre || "Implanter", t: realiser?.action3Description || "Avec joie et maestria" },
-              ].map((s) => (
-                <div key={s.n} className="bg-card p-4 border-t-[3px] border-accent/60">
+              ].map((s, index) => (
+                <motion.div
+                  key={s.n}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-card p-4 border-t-[3px] border-accent/60"
+                >
                   <div className="text-base font-normal mb-1 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.n}</div>
                   <div className="text-xs text-muted-foreground">{s.t}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ACCOMPAGNER */}
       <section id="accompagner" className="border-t border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+        <div className="max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40">
           <div className="grid md:grid-cols-12 gap-12 mb-16">
-            <div className="md:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
+              className="md:col-span-5"
+            >
               <div className="text-accent mb-4"><IconAccompagner /></div>
               <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>04</p>
               <h2 className="text-4xl md:text-5xl font-normal leading-[1.06] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{accompagner?.titre || 'Accompagner'}</h2>
@@ -519,7 +617,7 @@ export default function Home() {
               <p className="text-sm text-foreground">
                 {accompagner?.paragraphe2 || 'Voici mes quatre offres d\'entretien — à choisir selon votre rythme et votre envie de vous impliquer dans la vie du jardin.'}
               </p>
-            </div>
+            </motion.div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
@@ -528,21 +626,34 @@ export default function Home() {
               { titre: accompagner?.offre3Titre || 'Présence', rythme: accompagner?.offre3Rythme || '6 à 8 visites / an', desc: accompagner?.offre3Description || 'Un accompagnement attentif tout au long de l\'année : suivi des plantations, interventions ciblées, recommandations saisonnières, ajustements et conseils à distance.' },
               { titre: accompagner?.offre4Titre || 'Cocréation', rythme: accompagner?.offre4Rythme || '½ journée ou journée', desc: accompagner?.offre4Description || 'Le jardin devient une œuvre commune. Je vous transmets le jardin et vous donne des outils : comprendre son sol, composer un massif naturaliste, reconnaître les végétaux, tailler sans crainte.' },
             ].map((a, i) => (
-              <div key={a.titre} className="bg-background p-7 flex flex-col border-t-[3px] border-accent/60">
+              <motion.div
+                key={a.titre}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="bg-background p-7 flex flex-col border-t-[3px] border-accent/60"
+              >
                 <span className="text-xs text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</span>
                 <h3 className="text-2xl font-normal mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{a.titre}</h3>
                 <p className="text-xs text-accent font-medium mb-4">{a.rythme}</p>
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1">{a.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* PORTRAIT */}
-      <section id="portrait" className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+      <section id="portrait" className="max-w-6xl mx-auto px-6 md:px-12 py-28 md:py-40">
         <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
-          <div className="md:col-span-4">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-4"
+          >
             <div className="aspect-[2/3] overflow-hidden bg-muted border-t-[3px] border-accent/60">
               <img
                 src="https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=600&h=900&fit=crop&auto=format"
@@ -550,8 +661,14 @@ export default function Home() {
                 className="w-full h-full object-cover"
               />
             </div>
-          </div>
-          <div className="md:col-span-8 flex flex-col justify-center">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-8 flex flex-col justify-center"
+          >
             <p className="text-xs tracking-widest uppercase text-muted-foreground mb-4">{portrait?.surtitre || 'Portrait'}</p>
             <h2 className="text-3xl md:text-4xl font-normal leading-[1.1] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
               {portrait?.titreLigne1 || 'Le regard du designer'}
@@ -567,14 +684,20 @@ export default function Home() {
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
               {portrait?.paragraphe3 || 'Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu qui vous ressemble.'}
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* BLOG */}
-      <section className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-20 md:py-28">
-          <div className="flex items-end justify-between mb-12">
+      <section className="border-t border-border py-28 md:py-40">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="flex items-end justify-between mb-12 md:mb-16"
+          >
             <div>
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Journal</p>
               <h2
@@ -590,15 +713,21 @@ export default function Home() {
             >
               Tous les articles <ArrowUpRight size={14} />
             </Link>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {articles.map((article, i) => (
-              <Link
+              <motion.div
                 key={article.id}
-                to={`/journal/${article.slug}`}
-                className="group flex flex-col"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
               >
+                <Link
+                  to={`/journal/${article.slug}`}
+                  className="group flex flex-col"
+                >
                 {/* Image */}
                 <div className="relative overflow-hidden border-t-[2px] border-accent/60 mb-4" style={{ aspectRatio: "3/2" }}>
                   <img
@@ -641,15 +770,22 @@ export default function Home() {
                   Lire l'article <ArrowUpRight size={11} />
                 </div>
               </Link>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* AVIS */}
-      <section className="border-t border-border bg-background">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-20 md:py-28">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+      <section className="border-t border-border bg-background py-28 md:py-40">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
+          >
             <div>
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2"
                 style={{ fontFamily: "'DM Mono', monospace" }}>
@@ -669,7 +805,7 @@ export default function Home() {
               </div>
               <span className="text-sm text-muted-foreground">5,0 · Google Business</span>
             </div>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
@@ -695,8 +831,12 @@ export default function Home() {
                 avis: "Très professionnel, à l'écoute et créatif. La palette végétale qu'il a choisie pour notre massif est parfaitement adaptée — les plantes poussent sans effort et le jardin change joliment au fil des saisons.",
               },
             ].map((r, i) => (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="flex flex-col gap-5 p-7 bg-card border-t-[2px] border-accent/60"
               >
                 {/* Étoiles */}
@@ -729,7 +869,7 @@ export default function Home() {
                     {r.date}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -748,9 +888,15 @@ export default function Home() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" style={{ backgroundColor: "#b85c3a", color: "#faf6ee" }}>
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-36 grid md:grid-cols-12 gap-12">
-          <div className="md:col-span-5">
+      <section id="contact" className="py-28 md:py-40" style={{ backgroundColor: "#b85c3a", color: "#faf6ee" }}>
+        <div className="max-w-6xl mx-auto px-6 md:px-12 grid md:grid-cols-12 gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-5"
+          >
             <p className="text-xs tracking-widest uppercase mb-4" style={{ color: "#faf6ee", opacity: 0.6 }}>Projet de jardin</p>
             <h2 className="text-4xl md:text-5xl font-normal leading-[1.05] mb-8" style={{ fontFamily: "'Fraunces', serif" }}>
               Prise de RDV
@@ -772,8 +918,14 @@ export default function Home() {
             <p className="text-sm leading-relaxed mt-8 italic" style={{ fontFamily: "'Fraunces', serif", color: "#faf6ee", opacity: 0.35 }}>
               Chaque détail nous aide à mieux comprendre votre projet et à lui donner vie.
             </p>
-          </div>
-          <div className="md:col-span-7">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-7"
+          >
             <form className="flex flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
               <div className="grid md:grid-cols-2 gap-5">
                 {[
@@ -832,24 +984,36 @@ export default function Home() {
                 Envoyer ma demande <ArrowUpRight size={12} />
               </button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="border-t border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32">
+      <section className="border-t border-border bg-card py-28 md:py-40">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-12 gap-12 md:gap-16">
 
             {/* Accordéon à gauche */}
-            <div className="md:col-span-8 border-t border-border order-2 md:order-1">
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
+              className="md:col-span-8 border-t border-border order-2 md:order-1"
+            >
               {faqs && faqs.map((item, i) => (
                 <FaqItem key={item.id} q={item.question} a={item.reponse} index={i} />
               ))}
-            </div>
+            </motion.div>
 
             {/* Titre fixe à droite */}
-            <div className="md:col-span-4 order-1 md:order-2">
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7 }}
+              className="md:col-span-4 order-1 md:order-2"
+            >
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-4"
                 style={{ fontFamily: "'DM Mono', monospace" }}>
                 Questions fréquentes
@@ -871,14 +1035,14 @@ export default function Home() {
               >
                 Poser une question <ArrowUpRight size={11} />
               </a>
-            </div>
+            </motion.div>
 
           </div>
         </div>
       </section>
 
       {/* INSTAGRAM */}
-      <section className="border-t border-border">
+      <section className="border-t border-border py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-6 md:px-12 py-12">
           <div className="flex items-center justify-between mb-6">
             <p className="text-xs tracking-widest uppercase text-muted-foreground">Le jardin en images</p>
