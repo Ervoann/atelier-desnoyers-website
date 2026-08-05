@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight, ArrowUpRight, Play } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { motion } from "framer-motion";
+import { AnimatedArrowUpRight, type ArrowUpRightIconHandle } from "./AnimatedArrowUpRight";
 import type { PortfolioData, PortfolioSlideData } from "@/app/hooks/useSupabaseData";
 
 type Projet = PortfolioData;
@@ -8,6 +10,7 @@ type Slide = PortfolioSlideData;
 interface ProjetModalProps {
   projet: Projet | null;
   onClose: () => void;
+  onNextProjet?: () => void;
 }
 
 function ImageSlide({ src, alt }: { src: string; alt: string }) {
@@ -15,7 +18,7 @@ function ImageSlide({ src, alt }: { src: string; alt: string }) {
     <img
       src={src}
       alt={alt}
-      className="w-full h-full object-cover"
+      className="w-full h-full object-cover object-center"
     />
   );
 }
@@ -50,8 +53,9 @@ function SlideIcon({ slide }: { slide: Slide }) {
   );
 }
 
-export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
+export default function ProjetModal({ projet, onClose, onNextProjet }: ProjetModalProps) {
   const [current, setCurrent] = useState(0);
+  const arrowRef = useRef<ArrowUpRightIconHandle>(null);
 
   const prev = useCallback(() => {
     if (!projet || !projet.slides) return;
@@ -89,14 +93,13 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 lg:p-12"
       style={{ backgroundColor: "rgba(30,35,25,0.88)", backdropFilter: "blur(6px)" }}
       onClick={onClose}
     >
       {/* Panel */}
       <div
-        className="relative w-full max-w-6xl bg-background flex flex-col md:flex-row overflow-hidden border-t-[3px] border-accent"
-        style={{ maxHeight: "92vh" }}
+        className="relative w-full max-w-[1600px] h-[90vh] bg-background flex flex-col md:flex-row overflow-hidden border-t-[3px] border-accent"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Liseré gauche vertical */}
@@ -112,9 +115,9 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
         </button>
 
         {/* ── CARROUSEL ── */}
-        <div className="relative md:w-[60%] flex-shrink-0 flex flex-col bg-primary">
-          {/* Slide area */}
-          <div className="relative overflow-hidden" style={{ aspectRatio: "1/1" }}>
+        <div className="relative md:w-[55%] lg:w-[50%] flex-shrink-0 flex flex-col bg-primary">
+          {/* Slide area - carré parfait */}
+          <div className="relative overflow-hidden aspect-square">
             {projet.slides.map((s, i) => (
               <div
                 key={i}
@@ -146,8 +149,8 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
             </button>
           </div>
 
-          {/* Counter */}
-          <div className="flex flex-col items-center gap-1.5 py-3 border-t border-accent/20">
+          {/* Counter - dans la bande noire en bas */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-4">
             <div className="flex gap-1.5">
               {projet.slides.map((_, i) => (
                 <div
@@ -170,26 +173,26 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
         {/* ── INFOS ── */}
         <div className="flex-1 flex flex-col overflow-y-auto border-l-[2px] border-accent/30">
           {/* Header */}
-          <div className="px-8 pt-8 pb-6 border-b border-border">
+          <div className="px-8 lg:px-12 pt-10 lg:pt-12 pb-8 border-b border-border">
             <p
-              className="text-[10px] tracking-widest uppercase text-accent mb-3"
+              className="text-[10px] lg:text-xs tracking-widest uppercase text-accent mb-4"
               style={{ fontFamily: "'DM Mono', monospace" }}
             >
               {projet.typeProjet || 'Jardin'} · {projet.annee}
             </p>
             <h2
-              className="text-3xl md:text-4xl font-normal leading-[1.05] mb-1"
+              className="text-3xl md:text-4xl lg:text-5xl font-normal leading-[1.05] mb-2"
               style={{ fontFamily: "'Fraunces', serif" }}
             >
               {projet.titre}
             </h2>
-            <p className="text-sm text-muted-foreground">{projet.lieu}</p>
+            <p className="text-sm lg:text-base text-muted-foreground">{projet.lieu}</p>
           </div>
 
           {/* Description */}
-          <div className="px-8 py-6 border-b border-border flex-1">
+          <div className="px-8 lg:px-12 py-8 lg:py-10 border-b border-border flex-1">
             <p
-              className="text-sm md:text-base leading-relaxed text-muted-foreground"
+              className="text-sm md:text-base lg:text-lg leading-relaxed text-muted-foreground"
               style={{ fontFamily: "'Fraunces', serif", fontWeight: 300 }}
             >
               {projet.description}
@@ -197,33 +200,33 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
           </div>
 
           {/* Fiche technique */}
-          <div className="px-8 py-5 border-b border-border">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="px-8 lg:px-12 py-6 lg:py-8 border-b border-border">
+            <div className="grid grid-cols-3 gap-4 lg:gap-6">
               {[
                 { label: "Surface", value: projet.surface },
                 { label: "Lieu", value: projet.lieu.split(",")[0] },
                 { label: "Année", value: projet.annee },
               ].map((row) => (
-                <div key={row.label} className="border-l-[2px] border-accent/40 pl-3">
+                <div key={row.label} className="border-l-[2px] border-accent/40 pl-3 lg:pl-4">
                   <p
-                    className="text-[9px] tracking-widest uppercase text-muted-foreground mb-1"
+                    className="text-[9px] lg:text-[10px] tracking-widest uppercase text-muted-foreground mb-1.5"
                     style={{ fontFamily: "'DM Mono', monospace" }}
                   >
                     {row.label}
                   </p>
-                  <p className="text-sm text-foreground">{row.value}</p>
+                  <p className="text-sm lg:text-base text-foreground">{row.value}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Tags */}
-          <div className="px-8 py-5 border-b border-border">
-            <div className="flex flex-wrap gap-2">
+          <div className="px-8 lg:px-12 py-6 lg:py-8 border-b border-border">
+            <div className="flex flex-wrap gap-2 lg:gap-2.5">
               {projet.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 text-[11px] border border-accent/40 text-accent tracking-wide"
+                  className="px-3 lg:px-4 py-1.5 text-[11px] lg:text-xs border border-accent/40 text-accent tracking-wide"
                 >
                   {tag}
                 </span>
@@ -231,15 +234,38 @@ export default function ProjetModal({ projet, onClose }: ProjetModalProps) {
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="px-8 py-6">
-            <a
-              href="/#contact"
-              onClick={onClose}
-              className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-primary text-primary-foreground text-xs tracking-widest uppercase hover:opacity-80 transition-opacity border-b-[2px] border-accent/60"
-            >
-              Votre projet de jardin <ArrowUpRight size={12} />
-            </a>
+          {/* CTA Buttons */}
+          <div className="px-8 lg:px-12 py-8">
+            <div className="flex flex-col md:flex-row gap-3">
+              {/* Votre projet de jardin - avec animation */}
+              <motion.a
+                href="/#contact"
+                onClick={onClose}
+                onHoverStart={() => arrowRef.current?.startAnimation()}
+                onHoverEnd={() => arrowRef.current?.stopAnimation()}
+                whileHover={{ backgroundColor: "rgba(26, 31, 22, 0.9)" }}
+                whileTap={{ backgroundColor: "rgba(26, 31, 22, 0.8)" }}
+                transition={{ duration: 0.2 }}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground text-xs tracking-widest uppercase border-b-[2px] border-accent/60"
+              >
+                Votre projet de jardin
+                <AnimatedArrowUpRight ref={arrowRef} size={12} />
+              </motion.a>
+
+              {/* Projet suivant */}
+              {onNextProjet && (
+                <motion.button
+                  onClick={onNextProjet}
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(134,162,98,0.6)" }}
+                  whileTap={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 border border-accent/40 text-accent text-xs tracking-widest uppercase"
+                >
+                  Projet suivant
+                  <ChevronRight size={14} />
+                </motion.button>
+              )}
+            </div>
           </div>
         </div>
       </div>

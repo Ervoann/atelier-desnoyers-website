@@ -35,7 +35,7 @@ export default function Root() {
             : ""
         }`}
       >
-        <nav className="max-w-6xl mx-auto px-6 md:px-12 flex items-center justify-between h-16">
+        <nav className="w-full px-8 md:px-16 lg:px-24 flex items-center justify-between h-16">
           <Link
             to="/"
             className="hover:opacity-70 transition-opacity"

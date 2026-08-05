@@ -6,6 +6,8 @@ import { accompagnements, articles } from "@/app/data";
 import ProjetModal from "@/app/components/ProjetModal";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
+import { AnimatedArrowUpRight, type ArrowUpRightIconHandle } from "@/app/components/AnimatedArrowUpRight";
+import { SplitTextReveal } from "@/app/components/SplitTextReveal";
 import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs, usePortfolios } from "@/app/hooks/useSupabaseData";
 import type { PortfolioData } from "@/app/hooks/useSupabaseData";
 
@@ -54,9 +56,20 @@ function WordReveal({ text, scrollYProgress }: { text: string; scrollYProgress: 
 }
 
 // Stacking section component for Observer, Dessiner, Realiser, Accompagner
-function StackingSection({ children, id, className, zIndex, isLast }: { children: React.ReactNode; id: string; className?: string; zIndex: number; isLast?: boolean }) {
+function StackingSection({ children, id, className, zIndex, isLast, passRef, extendedScroll }: { children: React.ReactNode; id: string; className?: string; zIndex: number; isLast?: boolean; passRef?: boolean; extendedScroll?: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Extend scroll height for horizontal scroll sections - only on desktop
+  const scrollHeight = extendedScroll ? '500vh' : '300vh';
+
   return (
-    <div className="md:relative md:h-[300vh]" style={{ height: isLast ? 'auto' : undefined }}>
+    <div
+      ref={containerRef}
+      className={`stacking-container md:relative ${isLast ? 'is-last' : ''}`}
+      style={{
+        ['--scroll-height' as any]: scrollHeight
+      }}
+    >
       <section
         id={id}
         className={`md:sticky md:top-0 md:min-h-screen ${className}`}
@@ -65,7 +78,9 @@ function StackingSection({ children, id, className, zIndex, isLast }: { children
           willChange: 'transform'
         }}
       >
-        {children}
+        {passRef && typeof children === 'object' && 'type' in children
+          ? React.cloneElement(children as React.ReactElement, { parentRef: containerRef })
+          : children}
       </section>
     </div>
   );
@@ -89,149 +104,253 @@ function useCascadeReveal(index: number, total: number) {
   return { ref, opacity, y };
 }
 
-// Observer section content with cascade animation
-function ObserverContent({ observer }: { observer: any }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
+// Observer section content with Daylight-style asymmetric layout
+function ObserverContent({ observer, parentRef }: { observer: any; parentRef?: React.RefObject<HTMLDivElement> }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track scroll progress of the image container itself for smooth parallax during sticky
+  const { scrollYProgress: imageScrollProgress } = useScroll({
+    target: imageContainerRef,
     offset: ["start end", "end start"]
   });
 
-  // Detect mobile
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Track scroll progress of parent section for horizontal scroll effect
+  const { scrollYProgress: sectionScrollProgress } = useScroll({
+    target: parentRef || sectionRef,
+    offset: ["start start", "end end"]
+  });
 
-  // Faster animations on mobile
-  const timing = isMobile
-    ? { el1: [0.1, 0.2], el2: [0.15, 0.25], el3: [0.2, 0.3] }
-    : { el1: [0.15, 0.28], el2: [0.25, 0.38], el3: [0.35, 0.48] };
+  // Parallax effect for image - smooth continuous movement
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-15%", "15%"]);
 
-  const opacity1 = useTransform(scrollYProgress, timing.el1, [0, 1]);
-  const y1 = useTransform(scrollYProgress, timing.el1, [isMobile ? 30 : 50, 0]);
-
-  const opacity2 = useTransform(scrollYProgress, timing.el2, [0, 1]);
-  const y2 = useTransform(scrollYProgress, timing.el2, [isMobile ? 30 : 50, 0]);
-
-  const opacity3 = useTransform(scrollYProgress, timing.el3, [0, 1]);
-  const y3 = useTransform(scrollYProgress, timing.el3, [isMobile ? 30 : 50, 0]);
+  // Horizontal scroll effect for action cards - 3 cards, show last 2 at the end
+  // 3 cards * 340px + 2 gaps * 48px = 1116px, scroll about 33% to show cards 2 & 3
+  const cardsX = useTransform(sectionScrollProgress, [0.2, 0.95], ["0%", "-33%"]);
 
   return (
-    <div ref={containerRef} className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-40 md:flex md:items-center md:min-h-screen">
-      <div className="w-full">
-        <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
-          <motion.div style={{ opacity: opacity1, y: y1 }} className="md:col-span-5">
-            <div className="text-accent mb-4"><IconObserver /></div>
-            <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>01</p>
-            <h2 className="text-3xl md:text-5xl font-normal leading-[1.1] md:leading-[1.06] mb-4 md:mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
-              {observer?.titre || "Observer"}
+    <div ref={sectionRef as any} className="w-full">
+      {/* Layout Daylight: 2 colonnes - Contenu gauche | Image pleine hauteur droite */}
+      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+
+        {/* Left Column - Title + Text + Action Cards */}
+        <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-24 lg:pr-12 py-16 md:py-40 gap-8 overflow-hidden">
+
+          {/* Title + Text */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-accent mb-6"><IconObserver /></div>
+              <p className="text-xs tracking-widest uppercase text-accent mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>
+                LA DÉMARCHE — 01
+              </p>
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] mb-8" style={{ fontFamily: "'Fraunces', serif" }}>
+              <SplitTextReveal text={observer?.titre || "Observer"} delay={0.1} />
             </h2>
-            <p className="text-sm text-muted-foreground mb-2 font-medium">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-base md:text-lg text-accent mb-6 font-medium"
+            >
               {observer?.sousTitre || "Visite & diagnostic"}
-            </p>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-6">
-              {observer?.paragraphe1 || "Chaque jardin commence par une rencontre. J'observe le lieu tel qu'il est : sa topographie, la nature de son sol, son exposition, ses vues, ses contraintes et ses richesses parfois discrètes. J'écoute également les habitants, leurs usages, leurs envies et leur manière d'habiter le paysage."}
-            </p>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-              {observer?.paragraphe2 || "Avant toute intervention, il s'agit de comprendre. Un jardin existe souvent déjà en puissance."}
-            </p>
-          </motion.div>
-          <motion.div style={{ opacity: opacity2, y: y2 }} className="md:col-span-7">
-            <div className="aspect-[4/3] overflow-hidden bg-muted mb-6 border-t-[3px] border-accent/60">
-              <img
-                src="https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=675&fit=crop&auto=format"
-                alt="Observation et diagnostic du sol"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 max-w-lg"
+            >
+              <SplitTextReveal text={observer?.paragraphe1 || "Chaque jardin commence par une rencontre. J'observe le lieu tel qu'il est : sa topographie, la nature de son sol, son exposition, ses vues, ses contraintes et ses richesses parfois discrètes. J'écoute également les habitants, leurs usages, leurs envies et leur manière d'habiter le paysage."} delay={0.5} />
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg"
+            >
+              <SplitTextReveal text={observer?.paragraphe2 || "Avant toute intervention, il s'agit de comprendre. Un jardin existe souvent déjà en puissance."} delay={0.7} />
+            </motion.p>
+          </div>
+
+          {/* Horizontal scrolling action cards - desktop only */}
+          <motion.div
+            className="hidden lg:block"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 1.5 }}
+          >
+            <motion.div
+              style={{ x: cardsX }}
+              className="flex gap-12"
+            >
+              {(observer ? [
+                { verb: observer.action1Titre, desc: observer.action1Description },
+                { verb: observer.action2Titre, desc: observer.action2Description },
+                { verb: observer.action3Titre, desc: observer.action3Description },
+              ] : [
+                { verb: "Arpenter", desc: "Mesurer, topographier, analyser" },
+                { verb: "Débusquer", desc: "Relever les plantes bio-indicatrices" },
+                { verb: "S'imprégner", desc: "Laisser infuser pour faire éclore le concept" },
+              ]).map((s, i) => (
+                <div
+                  key={s.verb}
+                  className="bg-card p-8 border-t-[4px] border-accent flex-shrink-0 w-[340px]"
+                >
+                  <div className="text-xs text-accent/60 mb-4 font-medium tracking-wider" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</div>
+                  <h3 className="text-2xl font-normal text-foreground mb-5" style={{ fontFamily: "'Fraunces', serif" }}>{s.verb}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
         </div>
 
-        <motion.div style={{ opacity: opacity3, y: y3 }} className="mt-10 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {(observer ? [
-            { verb: observer.action1Titre, desc: observer.action1Description },
-            { verb: observer.action2Titre, desc: observer.action2Description },
-            { verb: observer.action3Titre, desc: observer.action3Description },
-          ] : [
-            { verb: "Arpenter", desc: "Mesurer, topographier, analyser" },
-            { verb: "Débusquer", desc: "Relever les plantes bio-indicatrices" },
-            { verb: "S'imprégner", desc: "Laisser infuser pour faire éclore le concept" },
-          ]).map((s) => (
-            <div
-              key={s.verb}
-              className="bg-card p-6 md:p-8 border-t-[3px] border-accent/60"
-            >
-              <div className="text-xl md:text-2xl font-normal mb-2 md:mb-3 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.verb}</div>
-              <div className="text-sm text-muted-foreground leading-relaxed">{s.desc}</div>
-            </div>
-          ))}
-        </motion.div>
+        {/* Right Column - Full Height Image (no padding) */}
+        <div className="lg:w-[45%] flex-shrink-0 self-stretch">
+          <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60">
+            <motion.img
+              style={{ y: imageY }}
+              src="https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=1200&fit=crop&auto=format"
+              alt="Observation et diagnostic du sol"
+              className="w-full h-full object-cover scale-125"
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Action cards for mobile - below */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="lg:hidden grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 px-8 md:px-16 pb-16"
+      >
+        {(observer ? [
+          { verb: observer.action1Titre, desc: observer.action1Description },
+          { verb: observer.action2Titre, desc: observer.action2Description },
+          { verb: observer.action3Titre, desc: observer.action3Description },
+        ] : [
+          { verb: "Arpenter", desc: "Mesurer, topographier, analyser" },
+          { verb: "Débusquer", desc: "Relever les plantes bio-indicatrices" },
+          { verb: "S'imprégner", desc: "Laisser infuser pour faire éclore le concept" },
+        ]).map((s) => (
+          <div
+            key={s.verb}
+            className="bg-card p-6 md:p-8 border-t-[3px] border-accent/60"
+          >
+            <div className="text-xl md:text-2xl font-normal mb-2 md:mb-3 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.verb}</div>
+            <div className="text-sm text-muted-foreground leading-relaxed">{s.desc}</div>
+          </div>
+        ))}
+      </motion.div>
     </div>
   );
 }
 
-// Dessiner section content with cascade animation
-function DessinerContent({ dessiner }: { dessiner: any }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
+// Dessiner section content with Daylight-style layout (image left, content right)
+function DessinerContent({ dessiner, parentRef }: { dessiner: any; parentRef?: React.RefObject<HTMLDivElement> }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track scroll progress of the image container itself for smooth parallax during sticky
+  const { scrollYProgress: imageScrollProgress } = useScroll({
+    target: imageContainerRef,
     offset: ["start end", "end start"]
   });
 
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Track scroll progress of parent section for horizontal scroll effect
+  const { scrollYProgress: sectionScrollProgress } = useScroll({
+    target: parentRef || sectionRef,
+    offset: ["start start", "end end"]
+  });
 
-  const timing = isMobile
-    ? { el1: [0.1, 0.2], el2: [0.15, 0.25] }
-    : { el1: [0.15, 0.28], el2: [0.25, 0.38] };
+  // Parallax effect for image - smooth continuous movement
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-15%", "15%"]);
 
-  const opacity1 = useTransform(scrollYProgress, timing.el1, [0, 1]);
-  const y1 = useTransform(scrollYProgress, timing.el1, [isMobile ? 30 : 50, 0]);
-
-  const opacity2 = useTransform(scrollYProgress, timing.el2, [0, 1]);
-  const y2 = useTransform(scrollYProgress, timing.el2, [isMobile ? 30 : 50, 0]);
+  // Horizontal scroll effect for aspect cards - 4 cards, show last 2 at the end
+  // 4 cards * 340px + 3 gaps * 48px = 1504px, scroll about 75% to fully show card 4
+  // End at 0.70 to give enough time to view 4th card before sticky releases
+  const cardsX = useTransform(sectionScrollProgress, [0.2, 0.70], ["0%", "-75%"]);
 
   return (
-    <div ref={containerRef} className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-40 md:flex md:items-center md:min-h-screen">
-      <div className="w-full">
-        <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
-          <motion.div style={{ opacity: opacity1, y: y1 }} className="md:col-span-7 order-2 md:order-1">
-            <div className="aspect-[4/3] overflow-hidden bg-muted mb-4 md:mb-6 border-t-[3px] border-accent/60">
-              <img
-                src="https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=675&fit=crop&auto=format"
-                alt="Conception et esquisses de jardin"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="bg-background border-l-[3px] border-accent/60 p-4 md:p-5 pl-5 md:pl-6">
-              <p className="text-sm md:text-base italic text-accent leading-relaxed" style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}>
-                {dessiner?.citation || '"À l\'origine, dessin et dessein sont le même mot. Le trait visible naît d\'une intention invisible."'}
+    <div ref={sectionRef as any} className="w-full">
+      {/* Layout Daylight inversé: Image gauche | Contenu droite */}
+      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+
+        {/* Left Column - Full Height Image (no padding) */}
+        <div className="lg:w-[45%] flex-shrink-0 self-stretch order-2 lg:order-1">
+          <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60">
+            <motion.img
+              style={{ y: imageY }}
+              src="https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=1200&fit=crop&auto=format"
+              alt="Conception et esquisses de jardin"
+              className="w-full h-full object-cover scale-125"
+            />
+          </div>
+        </div>
+
+        {/* Right Column - Title + Text + Aspects */}
+        <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-12 lg:pr-24 py-16 md:py-40 gap-8 order-1 lg:order-2 overflow-hidden">
+
+          {/* Title + Text */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-accent mb-6"><IconDessiner /></div>
+              <p className="text-xs tracking-widest uppercase text-accent mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>
+                LA DÉMARCHE — 02
               </p>
-            </div>
-          </motion.div>
-          <motion.div style={{ opacity: opacity2, y: y2 }} className="md:col-span-5 order-1 md:order-2">
-            <div className="text-accent mb-4"><IconDessiner /></div>
-            <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>02</p>
-            <h2 className="text-3xl md:text-5xl font-normal leading-[1.1] md:leading-[1.06] mb-4 md:mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
-              {dessiner?.titre || "Dessiner"}
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] mb-8" style={{ fontFamily: "'Fraunces', serif" }}>
+              <SplitTextReveal text={dessiner?.titre || "Dessiner"} delay={0.1} />
             </h2>
-            <p className="text-sm text-muted-foreground mb-2 font-medium">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-base md:text-lg text-accent mb-6 font-medium"
+            >
               {dessiner?.sousTitre || "Conception du jardin"}
-            </p>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-8">
-              {dessiner?.paragraphe || "Vient ensuite le temps du dessin. Croquis, esquisses, recherches et rêveries permettent de faire émerger une vision. Le projet prend forme progressivement, guidé par l'esprit du lieu autant que par les aspirations de ses habitants."}
-            </p>
-            <div className="space-y-4">
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg"
+            >
+              <SplitTextReveal text={dessiner?.paragraphe || "Vient ensuite le temps du dessin. Croquis, esquisses, recherches et rêveries permettent de faire émerger une vision. Le projet prend forme progressivement, guidé par l'esprit du lieu autant que par les aspirations de ses habitants."} delay={0.5} />
+            </motion.p>
+          </div>
+
+          {/* Horizontal scrolling aspect cards - desktop only */}
+          <motion.div
+            className="hidden lg:block"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
+            <motion.div
+              style={{ x: cardsX }}
+              className="flex gap-12"
+            >
               {(dessiner ? [
                 { titre: dessiner.aspect1Titre, detail: dessiner.aspect1Detail },
                 { titre: dessiner.aspect2Titre, detail: dessiner.aspect2Detail },
@@ -242,159 +361,345 @@ function DessinerContent({ dessiner }: { dessiner: any }) {
                 { titre: "Écologique", detail: "Palette végétale élégante, robuste, adaptée et locale, établie avec mes partenaires pépiniéristes" },
                 { titre: "Technique", detail: "Plan d'implantation, de réseau, de structure" },
                 { titre: "Économique", detail: "Chiffrage des postes, sélection des fournisseurs, calendrier prévisionnel" },
-              ]).map((d) => (
-                <div key={d.titre} className="flex gap-4 text-sm">
-                  <span className="w-24 flex-shrink-0 text-accent font-medium">{d.titre}</span>
-                  <span className="text-muted-foreground leading-relaxed">{d.detail}</span>
+              ]).map((d, i) => (
+                <div
+                  key={d.titre}
+                  className="bg-background p-8 border-t-[4px] border-accent flex-shrink-0 w-[340px]"
+                >
+                  <div className="text-xs text-accent/60 mb-4 font-medium tracking-wider" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</div>
+                  <h3 className="text-2xl font-normal text-foreground mb-5" style={{ fontFamily: "'Fraunces', serif" }}>{d.titre}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{d.detail}</p>
                 </div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
-    </div>
-  );
-}
 
-// Realiser section content with cascade animation
-function RealiserContent({ realiser }: { realiser: any }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const timing = isMobile
-    ? { el1: [0.1, 0.2], el2: [0.15, 0.25], el3: [0.2, 0.3] }
-    : { el1: [0.15, 0.28], el2: [0.25, 0.38], el3: [0.35, 0.48] };
-
-  const opacity1 = useTransform(scrollYProgress, timing.el1, [0, 1]);
-  const y1 = useTransform(scrollYProgress, timing.el1, [isMobile ? 30 : 50, 0]);
-
-  const opacity2 = useTransform(scrollYProgress, timing.el2, [0, 1]);
-  const y2 = useTransform(scrollYProgress, timing.el2, [isMobile ? 30 : 50, 0]);
-
-  const opacity3 = useTransform(scrollYProgress, timing.el3, [0, 1]);
-  const y3 = useTransform(scrollYProgress, timing.el3, [isMobile ? 30 : 50, 0]);
-
-  return (
-    <div ref={containerRef} className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-40 md:flex md:items-center md:min-h-screen">
-      <div className="w-full">
-        <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
-          <motion.div style={{ opacity: opacity1, y: y1 }} className="md:col-span-5">
-            <div className="text-accent mb-4"><IconRealiser /></div>
-            <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>03</p>
-            <h2 className="text-3xl md:text-5xl font-normal leading-[1.1] md:leading-[1.06] mb-4 md:mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{realiser?.titre || 'Réaliser'}</h2>
-            <p className="text-sm text-muted-foreground mb-2 font-medium">{realiser?.sousTitre || 'Aménagement & plantation'}</p>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-5">
-              {realiser?.paragraphe1 || 'Comme un peintre prépare sa toile, le jardin nécessite des fondations solides. Le terrain est préparé, modelé si nécessaire, les réseaux mis en place et les différents aménagements réalisés pour accueillir durablement les plantations.'}
-            </p>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-5">
-              {realiser?.paragraphe2 || 'C\'est le moment où le jardin entre en terre. Les végétaux sont implantés avec soin, en tenant compte de leur développement futur, des équilibres écologiques et des relations qu\'ils tisseront entre eux au fil des saisons.'}
-            </p>
-            <p className="text-sm md:text-base italic text-accent" style={{ fontFamily: "'Fraunces', serif" }}>
-              {realiser?.citation || 'Le jardin naît, mais il n\'est pas encore achevé.'}
-            </p>
-          </motion.div>
-          <motion.div style={{ opacity: opacity2, y: y2 }} className="md:col-span-7">
-            <div className="aspect-[16/10] overflow-hidden bg-muted border-t-[3px] border-accent/60">
-              <img
-                src="https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=562&fit=crop&auto=format"
-                alt="Plantation en cours — mise en terre des végétaux"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </motion.div>
-        </div>
-        <motion.div style={{ opacity: opacity3, y: y3 }} className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-8 md:mt-12">
-          {[
-            { n: realiser?.action1Titre || "Préparer", t: realiser?.action1Description || "Ouvrir, nettoyer, organiser et enrichir" },
-            { n: realiser?.action2Titre || "Acheminer", t: realiser?.action2Description || "Arbres, vivaces, bulbes, matériaux, décor" },
-            { n: realiser?.action3Titre || "Implanter", t: realiser?.action3Description || "Avec joie et maestria" },
-          ].map((s) => (
-            <div
-              key={s.n}
-              className="bg-card p-4 md:p-4 border-t-[3px] border-accent/60"
-            >
-              <div className="text-base md:text-base font-normal mb-1 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.n}</div>
-              <div className="text-xs md:text-xs text-muted-foreground">{s.t}</div>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-// Accompagner section content with cascade animation
-function AccompagnerContent({ accompagner }: { accompagner: any }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const timing = isMobile
-    ? { el1: [0.1, 0.2], el2: [0.15, 0.25] }
-    : { el1: [0.15, 0.28], el2: [0.25, 0.38] };
-
-  const opacity1 = useTransform(scrollYProgress, timing.el1, [0, 1]);
-  const y1 = useTransform(scrollYProgress, timing.el1, [isMobile ? 30 : 50, 0]);
-
-  const opacity2 = useTransform(scrollYProgress, timing.el2, [0, 1]);
-  const y2 = useTransform(scrollYProgress, timing.el2, [isMobile ? 30 : 50, 0]);
-
-  return (
-    <div ref={containerRef} className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-40 md:flex md:items-center md:min-h-screen">
-      <div className="w-full">
-        <motion.div style={{ opacity: opacity1, y: y1 }} className="grid md:grid-cols-12 gap-8 md:gap-12 mb-10 md:mb-16">
-          <div className="md:col-span-5">
-            <div className="text-accent mb-4"><IconAccompagner /></div>
-            <p className="text-xs tracking-widest uppercase text-accent mb-3" style={{ fontFamily: "'DM Mono', monospace" }}>04</p>
-            <h2 className="text-3xl md:text-5xl font-normal leading-[1.1] md:leading-[1.06] mb-4 md:mb-6" style={{ fontFamily: "'Fraunces', serif" }}>{accompagner?.titre || 'Accompagner'}</h2>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-6">
-              {accompagner?.paragraphe1 || 'Un jardin est un organisme vivant en constante évolution, il nous faut le laisser s\'épanouir et l\'aider à s\'installer. Je propose un suivi attentif afin d\'observer son développement, d\'ajuster certaines plantations et de transmettre les gestes qui permettent de gagner en autonomie.'}
-            </p>
-            <p className="text-sm text-foreground">
-              {accompagner?.paragraphe2 || 'Voici mes quatre offres d\'entretien — à choisir selon votre rythme et votre envie de vous impliquer dans la vie du jardin.'}
-            </p>
+      {/* Aspects for mobile - below */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="lg:hidden flex flex-col gap-4 mt-8 px-8 md:px-16 pb-16"
+      >
+        {(dessiner ? [
+          { titre: dessiner.aspect1Titre, detail: dessiner.aspect1Detail },
+          { titre: dessiner.aspect2Titre, detail: dessiner.aspect2Detail },
+          { titre: dessiner.aspect3Titre, detail: dessiner.aspect3Detail },
+          { titre: dessiner.aspect4Titre, detail: dessiner.aspect4Detail },
+        ] : [
+          { titre: "Esthétique", detail: "Carnet d'influence, esquisses, dessins d'élévation, illustrations d'ambiance" },
+          { titre: "Écologique", detail: "Palette végétale élégante, robuste, adaptée et locale, établie avec mes partenaires pépiniéristes" },
+          { titre: "Technique", detail: "Plan d'implantation, de réseau, de structure" },
+          { titre: "Économique", detail: "Chiffrage des postes, sélection des fournisseurs, calendrier prévisionnel" },
+        ]).map((d) => (
+          <div key={d.titre} className="bg-card p-5 border-t-[3px] border-accent/60">
+            <div className="text-base font-medium text-accent mb-2">{d.titre}</div>
+            <div className="text-sm text-muted-foreground leading-relaxed">{d.detail}</div>
           </div>
-        </motion.div>
-        <motion.div style={{ opacity: opacity2, y: y2 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { titre: accompagner?.offre1Titre || 'Saison', rythme: accompagner?.offre1Rythme || '2 visites / an', desc: accompagner?.offre1Description || 'Les moments essentiels. On observe les moments clés du jardin au fil de l\'année.' },
-            { titre: accompagner?.offre2Titre || 'Cycle', rythme: accompagner?.offre2Rythme || '4 visites / an', desc: accompagner?.offre2Description || 'Le rythme complet du jardin. Observer, ajuster, tailler, enrichir, conseiller. Le client participe s\'il le souhaite.' },
-            { titre: accompagner?.offre3Titre || 'Présence', rythme: accompagner?.offre3Rythme || '6 à 8 visites / an', desc: accompagner?.offre3Description || 'Un accompagnement attentif tout au long de l\'année : suivi des plantations, interventions ciblées, recommandations saisonnières, ajustements et conseils à distance.' },
-            { titre: accompagner?.offre4Titre || 'Cocréation', rythme: accompagner?.offre4Rythme || '½ journée ou journée', desc: accompagner?.offre4Description || 'Le jardin devient une œuvre commune. Je vous transmets le jardin et vous donne des outils : comprendre son sol, composer un massif naturaliste, reconnaître les végétaux, tailler sans crainte.' },
-          ].map((a, i) => (
-            <div
-              key={a.titre}
-              className="bg-background p-5 md:p-7 flex flex-col border-t-[3px] border-accent/60"
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// Realiser section content with Daylight-style layout (content left, image right)
+function RealiserContent({ realiser, parentRef }: { realiser: any; parentRef?: React.RefObject<HTMLDivElement> }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track scroll progress of the image container itself for smooth parallax during sticky
+  const { scrollYProgress: imageScrollProgress } = useScroll({
+    target: imageContainerRef,
+    offset: ["start end", "end start"]
+  });
+
+  // Track scroll progress of parent section for horizontal scroll effect
+  const { scrollYProgress: sectionScrollProgress } = useScroll({
+    target: parentRef || sectionRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Parallax effect for image - smooth continuous movement
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-15%", "15%"]);
+
+  // Horizontal scroll effect for action cards - 3 cards, show last 2 at the end
+  // 3 cards * 340px + 2 gaps * 48px = 1116px, scroll about 33% to show cards 2 & 3
+  const cardsX = useTransform(sectionScrollProgress, [0.2, 0.95], ["0%", "-33%"]);
+
+  return (
+    <div ref={sectionRef as any} className="w-full">
+      {/* Layout Daylight: Contenu gauche | Image droite */}
+      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+
+        {/* Left Column - Title + Text + Action Cards */}
+        <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-24 lg:pr-12 py-16 md:py-40 gap-8 overflow-hidden">
+
+          {/* Title + Text */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
             >
-              <span className="text-xs text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</span>
-              <h3 className="text-2xl font-normal mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{a.titre}</h3>
-              <p className="text-xs text-accent font-medium mb-4">{a.rythme}</p>
-              <p className="text-sm text-muted-foreground leading-relaxed flex-1">{a.desc}</p>
-            </div>
-          ))}
-        </motion.div>
+              <div className="text-accent mb-6"><IconRealiser /></div>
+              <p className="text-xs tracking-widest uppercase text-accent mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>
+                LA DÉMARCHE — 03
+              </p>
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] mb-8" style={{ fontFamily: "'Fraunces', serif" }}>
+              <SplitTextReveal text={realiser?.titre || 'Réaliser'} delay={0.1} />
+            </h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-base md:text-lg text-accent mb-6 font-medium"
+            >
+              {realiser?.sousTitre || 'Aménagement & plantation'}
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 max-w-lg"
+            >
+              <SplitTextReveal text={realiser?.paragraphe1 || 'Comme un peintre prépare sa toile, le jardin nécessite des fondations solides. Le terrain est préparé, modelé si nécessaire, les réseaux mis en place et les différents aménagements réalisés pour accueillir durablement les plantations.'} delay={0.5} />
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 max-w-lg"
+            >
+              <SplitTextReveal text={realiser?.paragraphe2 || 'C\'est le moment où le jardin entre en terre. Les végétaux sont implantés avec soin, en tenant compte de leur développement futur, des équilibres écologiques et des relations qu\'ils tisseront entre eux au fil des saisons.'} delay={0.7} />
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-sm md:text-base italic text-accent max-w-lg"
+              style={{ fontFamily: "'Fraunces', serif" }}
+            >
+              <SplitTextReveal text={realiser?.citation || 'Le jardin naît, mais il n\'est pas encore achevé.'} delay={0.9} />
+            </motion.p>
+          </div>
+
+          {/* Horizontal scrolling action cards - desktop only */}
+          <motion.div
+            className="hidden lg:block"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 1.8 }}
+          >
+            <motion.div
+              style={{ x: cardsX }}
+              className="flex gap-12"
+            >
+              {[
+                { n: realiser?.action1Titre || "Préparer", t: realiser?.action1Description || "Ouvrir, nettoyer, organiser et enrichir" },
+                { n: realiser?.action2Titre || "Acheminer", t: realiser?.action2Description || "Arbres, vivaces, bulbes, matériaux, décor" },
+                { n: realiser?.action3Titre || "Implanter", t: realiser?.action3Description || "Avec joie et maestria" },
+              ].map((s, i) => (
+                <div
+                  key={s.n}
+                  className="bg-card p-8 border-t-[4px] border-accent flex-shrink-0 w-[340px]"
+                >
+                  <div className="text-xs text-accent/60 mb-4 font-medium tracking-wider" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</div>
+                  <h3 className="text-2xl font-normal text-foreground mb-5" style={{ fontFamily: "'Fraunces', serif" }}>{s.n}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.t}</p>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Right Column - Full Height Image (no padding) */}
+        <div className="lg:w-[45%] flex-shrink-0 self-stretch">
+          <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60">
+            <motion.img
+              style={{ y: imageY }}
+              src="https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=1200&fit=crop&auto=format"
+              alt="Plantation en cours — mise en terre des végétaux"
+              className="w-full h-full object-cover scale-125"
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Action cards for mobile - below */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="lg:hidden grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 px-8 md:px-16 pb-16"
+      >
+        {[
+          { n: realiser?.action1Titre || "Préparer", t: realiser?.action1Description || "Ouvrir, nettoyer, organiser et enrichir" },
+          { n: realiser?.action2Titre || "Acheminer", t: realiser?.action2Description || "Arbres, vivaces, bulbes, matériaux, décor" },
+          { n: realiser?.action3Titre || "Implanter", t: realiser?.action3Description || "Avec joie et maestria" },
+        ].map((s) => (
+          <div
+            key={s.n}
+            className="bg-card p-6 md:p-8 border-t-[3px] border-accent/60"
+          >
+            <div className="text-xl md:text-2xl font-normal mb-2 md:mb-3 text-accent" style={{ fontFamily: "'Fraunces', serif" }}>{s.n}</div>
+            <div className="text-sm text-muted-foreground leading-relaxed">{s.t}</div>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// Accompagner section content with Daylight-style layout (image left, content right)
+function AccompagnerContent({ accompagner, parentRef }: { accompagner: any; parentRef?: React.RefObject<HTMLDivElement> }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track scroll progress of the image container itself for smooth parallax during sticky
+  const { scrollYProgress: imageScrollProgress } = useScroll({
+    target: imageContainerRef,
+    offset: ["start end", "end start"]
+  });
+
+  // Track scroll progress of parent section for horizontal scroll effect
+  const { scrollYProgress: sectionScrollProgress } = useScroll({
+    target: parentRef || sectionRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Parallax effect for image - smooth continuous movement
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-15%", "15%"]);
+
+  // Horizontal scroll effect for offers - scroll to show cards 3 & 4 at the end
+  // Start with card 1 (Saison), end showing cards 3 (Présence) & 4 (Cocréation)
+  // Need to scroll approximately 2 cards + 2 gaps = 680px + 96px ≈ 50%
+  const offresX = useTransform(sectionScrollProgress, [0.2, 0.95], ["0%", "-50%"]);
+
+  return (
+    <div ref={sectionRef as any} className="w-full">
+      {/* Layout Daylight inversé: Image gauche | Contenu droite */}
+      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+
+        {/* Left Column - Full Height Image (no padding) */}
+        <div className="lg:w-[45%] flex-shrink-0 self-stretch order-2 lg:order-1">
+          <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60">
+            <motion.img
+              style={{ y: imageY }}
+              src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop&auto=format"
+              alt="Accompagnement et entretien du jardin"
+              className="w-full h-full object-cover scale-125"
+            />
+          </div>
+        </div>
+
+        {/* Right Column - Title + Text + Offres */}
+        <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-12 lg:pr-24 py-16 md:py-40 gap-4 order-1 lg:order-2">
+
+          {/* Title + Text */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-accent mb-6"><IconAccompagner /></div>
+              <p className="text-xs tracking-widest uppercase text-accent mb-6" style={{ fontFamily: "'DM Mono', monospace" }}>
+                LA DÉMARCHE — 04
+              </p>
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] mb-6" style={{ fontFamily: "'Fraunces', serif" }}>
+              <SplitTextReveal text={accompagner?.titre || 'Accompagner'} delay={0.1} />
+            </h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 max-w-lg"
+            >
+              <SplitTextReveal text={accompagner?.paragraphe1 || 'Un jardin est un organisme vivant en constante évolution, il nous faut le laisser s\'épanouir et l\'aider à s\'installer. Je propose un suivi attentif afin d\'observer son développement, d\'ajuster certaines plantations et de transmettre les gestes qui permettent de gagner en autonomie.'} delay={0.4} />
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-sm md:text-base text-foreground max-w-lg"
+            >
+              <SplitTextReveal text={accompagner?.paragraphe2 || 'Voici mes quatre offres d\'entretien — à choisir selon votre rythme et votre envie de vous impliquer dans la vie du jardin.'} delay={0.6} />
+            </motion.p>
+          </div>
+
+          {/* Horizontal scrolling offers - desktop only */}
+          <motion.div
+            className="hidden lg:block overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+          >
+            <motion.div
+              style={{ x: offresX }}
+              className="flex gap-12"
+            >
+              {[
+                { titre: accompagner?.offre1Titre || 'Saison', rythme: accompagner?.offre1Rythme || '2 visites / an', desc: accompagner?.offre1Description || 'Les moments essentiels. On observe les moments clés du jardin au fil de l\'année.' },
+                { titre: accompagner?.offre2Titre || 'Cycle', rythme: accompagner?.offre2Rythme || '4 visites / an', desc: accompagner?.offre2Description || 'Le rythme complet du jardin. Observer, ajuster, tailler, enrichir, conseiller. Le client participe s\'il le souhaite.' },
+                { titre: accompagner?.offre3Titre || 'Présence', rythme: accompagner?.offre3Rythme || '6 à 8 visites / an', desc: accompagner?.offre3Description || 'Un accompagnement attentif tout au long de l\'année : suivi des plantations, interventions ciblées, recommandations saisonnières, ajustements et conseils à distance.' },
+                { titre: accompagner?.offre4Titre || 'Cocréation', rythme: accompagner?.offre4Rythme || '½ journée ou journée', desc: accompagner?.offre4Description || 'Le jardin devient une œuvre commune. Je vous transmets le jardin et vous donne des outils : comprendre son sol, composer un massif naturaliste, reconnaître les végétaux, tailler sans crainte.' },
+              ].map((a, i) => (
+                <div
+                  key={a.titre}
+                  className="bg-background p-8 border-t-[4px] border-accent flex-shrink-0 w-[340px]"
+                >
+                  <div className="text-xs text-accent/60 mb-4 font-medium tracking-wider" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</div>
+                  <h3 className="text-2xl font-normal text-foreground mb-2" style={{ fontFamily: "'Fraunces', serif" }}>{a.titre}</h3>
+                  <p className="text-sm text-accent font-semibold mb-5 tracking-wide">{a.rythme}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{a.desc}</p>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Offres grid for mobile - below */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 px-8 md:px-16 pb-16"
+      >
+        {[
+          { titre: accompagner?.offre1Titre || 'Saison', rythme: accompagner?.offre1Rythme || '2 visites / an', desc: accompagner?.offre1Description || 'Les moments essentiels. On observe les moments clés du jardin au fil de l\'année.' },
+          { titre: accompagner?.offre2Titre || 'Cycle', rythme: accompagner?.offre2Rythme || '4 visites / an', desc: accompagner?.offre2Description || 'Le rythme complet du jardin. Observer, ajuster, tailler, enrichir, conseiller. Le client participe s\'il le souhaite.' },
+          { titre: accompagner?.offre3Titre || 'Présence', rythme: accompagner?.offre3Rythme || '6 à 8 visites / an', desc: accompagner?.offre3Description || 'Un accompagnement attentif tout au long de l\'année : suivi des plantations, interventions ciblées, recommandations saisonnières, ajustements et conseils à distance.' },
+          { titre: accompagner?.offre4Titre || 'Cocréation', rythme: accompagner?.offre4Rythme || '½ journée ou journée', desc: accompagner?.offre4Description || 'Le jardin devient une œuvre commune. Je vous transmets le jardin et vous donne des outils : comprendre son sol, composer un massif naturaliste, reconnaître les végétaux, tailler sans crainte.' },
+        ].map((a, i) => (
+          <div
+            key={a.titre}
+            className="bg-background p-5 md:p-7 flex flex-col border-t-[3px] border-accent/60"
+          >
+            <span className="text-xs text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace" }}>0{i + 1}</span>
+            <h3 className="text-2xl font-normal mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{a.titre}</h3>
+            <p className="text-xs text-accent font-medium mb-4">{a.rythme}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed flex-1">{a.desc}</p>
+          </div>
+        ))}
+      </motion.div>
     </div>
   );
 }
@@ -409,31 +714,40 @@ function CitationSection({ citation }: { citation: any }) {
 
   return (
     <section ref={containerRef} className="relative border-t border-b border-border">
-      {/* Spacer to create scroll space - reduced on mobile */}
+      {/* Spacer to create scroll space */}
       <div className="h-[250vh] md:h-[400vh]">
         {/* Background layer - sticky and fills only the visible section */}
         <div className="sticky top-0 h-screen w-full z-0">
           <img
-            src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1920&h=1080&fit=crop&auto=format"
+            src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1920&h=1080&fit=crop&auto=format&q=80"
             alt="Jardin paysager naturel"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover brightness-[0.3]"
           />
-          <div className="absolute inset-0 bg-card/90" />
         </div>
 
-        {/* Sticky content container */}
-        <div className="sticky top-0 h-screen flex items-center z-10 -mt-[100vh]">
-          <div className="max-w-5xl mx-auto px-6 md:px-12 text-left">
-            <div className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl leading-[1.3] md:leading-[1.2] text-accent italic" style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}>
+        {/* Sticky content container - centered */}
+        <div className="sticky top-0 h-screen flex items-center justify-center z-10 -mt-[100vh]">
+          <div className="w-full px-8 md:px-16 lg:px-24 text-center">
+            {/* Giant title with word reveal */}
+            <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[1.05] text-white font-normal mb-8 md:mb-12" style={{ fontFamily: "'Fraunces', serif" }}>
               <WordReveal
-                text={citation?.texte || '"..."'}
+                text={citation?.texte || '"Des jardins comme des tableaux vivants."'}
                 scrollYProgress={scrollYProgress}
               />
             </div>
+
+            {/* Small secondary text below */}
             {citation?.sousTexte && (
-              <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-muted-foreground italic" style={{ fontFamily: "'Fraunces', serif" }}>
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="text-sm md:text-base lg:text-lg text-white/60 italic"
+                style={{ fontFamily: "'Fraunces', serif" }}
+              >
                 {citation.sousTexte}
-              </p>
+              </motion.p>
             )}
           </div>
         </div>
@@ -530,7 +844,7 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
 
 function HeroVideo() {
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }}>
       <iframe
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
@@ -538,7 +852,8 @@ function HeroVideo() {
           width: "100vw",
           height: "56.25vw", // 16:9 aspect ratio
           minHeight: "100vh",
-          minWidth: "177.77vh" // 16:9 aspect ratio
+          minWidth: "177.77vh", // 16:9 aspect ratio
+          pointerEvents: 'none'
         }}
         src="https://www.youtube-nocookie.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0"
         title="Background video"
@@ -546,8 +861,6 @@ function HeroVideo() {
         allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         loading="eager"
       />
-      {/* Overlay pour bloquer TOUS les clics et masquer les contrôles YouTube */}
-      <div className="absolute inset-0 z-10" style={{ pointerEvents: 'all', cursor: 'default' }} />
     </div>
   );
 }
@@ -564,9 +877,22 @@ export default function Home() {
   const { data: faqs } = useFaqs();
   const { data: portfolio } = usePortfolios();
 
+  const handleNextProjet = () => {
+    if (!portfolio || !selectedProjet) return;
+    // Filtrer seulement les projets visibles (ordre <= 6)
+    const visibleProjects = portfolio.filter(p => p.ordre <= 6);
+    const currentIndex = visibleProjects.findIndex(p => p.id === selectedProjet.id);
+    const nextIndex = (currentIndex + 1) % visibleProjects.length;
+    setSelectedProjet(visibleProjects[nextIndex]);
+  };
+
   return (
     <>
-      <ProjetModal projet={selectedProjet} onClose={() => setSelectedProjet(null)} />
+      <ProjetModal
+        projet={selectedProjet}
+        onClose={() => setSelectedProjet(null)}
+        onNextProjet={handleNextProjet}
+      />
 
       {/* HERO — full screen video */}
       <section className="relative h-screen min-h-[700px] flex items-end overflow-hidden bg-[#1a1f16]">
@@ -576,15 +902,17 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full max-w-6xl mx-auto px-6 md:px-12 pb-20 md:pb-24"
+          className="relative w-full px-8 md:px-16 lg:px-24 pb-32 md:pb-40"
         >
-          <div className="grid md:grid-cols-12 items-end gap-10 md:gap-8">
-            <div className="md:col-span-8">
+          <div className="flex items-end justify-between gap-16">
+            {/* Left side - Giant title */}
+            <div className="flex-1 max-w-[1200px]">
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-xs tracking-widest uppercase text-white/50 mb-6 md:mb-5"
+                className="text-xs md:text-sm tracking-widest uppercase text-white/40 mb-8 md:mb-10"
+                style={{ fontFamily: "'DM Mono', monospace" }}
               >
                 {loading ? "Chargement..." : homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"}
               </motion.p>
@@ -592,7 +920,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-normal leading-[1.05] text-white mb-6 md:mb-8"
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-normal leading-[0.95] text-white"
                 style={{ fontFamily: "'Fraunces', serif" }}
               >
                 {loading ? (
@@ -601,9 +929,9 @@ export default function Home() {
                   <>
                     {homepage.heroTitre.split(" ").slice(0, 2).join(" ")}
                     <br />
-                    {homepage.heroTitre.split(" ").slice(2, 5).join(" ")}
+                    {homepage.heroTitre.split(" ").slice(2, 4).join(" ")}
                     <br />
-                    <em>{homepage.heroTitre.split(" ").slice(5).join(" ")}</em>
+                    <em className="text-white/90">{homepage.heroTitre.split(" ").slice(4).join(" ")}</em>
                   </>
                 ) : (
                   <>
@@ -611,56 +939,138 @@ export default function Home() {
                     <br />
                     comme des
                     <br />
-                    <em>tableaux vivants.</em>
+                    <em className="text-white/90">tableaux vivants.</em>
                   </>
                 )}
               </motion.h1>
             </div>
+
+            {/* Right side - Logo, description, CTAs - aligned to bottom */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="md:col-span-4 md:pb-2"
+              className="hidden lg:flex flex-col w-[380px] flex-shrink-0 pb-2"
             >
               <img
                 src={logoBlancSrc}
                 alt="Atelier DESNOYERS"
-                className="w-20 md:w-56 mb-5 md:mb-8"
+                className="w-44 xl:w-52 mb-8"
               />
-              <p className="text-sm md:text-base text-white/70 leading-relaxed mb-8 md:mb-10">
+              <p className="text-sm xl:text-base text-white/70 leading-relaxed mb-8">
                 {loading ? "Chargement..." : homepage?.heroDescription || "Je conçois des jardins naturalistes et les accompagne dans le temps. Entre conception et soin, créer des lieux vivants, sensibles et durables."}
               </p>
-              <div className="flex flex-col sm:flex-row md:flex-col gap-3">
-                <a
-                  href="#contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-primary text-xs tracking-widest uppercase hover:opacity-90 transition-opacity"
-                >
-                  {homepage?.heroCtaPrincipal || "Projet de jardin"} <ArrowUpRight size={12} />
-                </a>
-                <a
-                  href="#observer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 text-white text-xs tracking-widest uppercase hover:border-white/70 transition-colors"
-                >
-                  {homepage?.heroCtaSecondaire || "La démarche"}
-                </a>
+              <div className="flex flex-col gap-3">
+                {(() => {
+                  const arrowRef1 = useRef<ArrowUpRightIconHandle>(null);
+                  return (
+                    <motion.button
+                      onClick={() => {
+                        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      onHoverStart={() => arrowRef1.current?.startAnimation()}
+                      onHoverEnd={() => arrowRef1.current?.stopAnimation()}
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.9)" }}
+                      whileTap={{ backgroundColor: "rgba(255,255,255,0.8)" }}
+                      transition={{ duration: 0.2 }}
+                      className="group relative inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-primary text-xs tracking-widest uppercase overflow-hidden"
+                    >
+                      {homepage?.heroCtaPrincipal || "Projet de jardin"}
+                      <AnimatedArrowUpRight ref={arrowRef1} size={13} />
+                    </motion.button>
+                  );
+                })()}
+                {(() => {
+                  const arrowRef2 = useRef<ArrowUpRightIconHandle>(null);
+                  return (
+                    <motion.button
+                      onClick={() => {
+                        document.getElementById('observer')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      onHoverStart={() => arrowRef2.current?.startAnimation()}
+                      onHoverEnd={() => arrowRef2.current?.stopAnimation()}
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.8)" }}
+                      whileTap={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                      transition={{ duration: 0.2 }}
+                      className="group relative inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 text-white text-xs tracking-widest uppercase overflow-hidden"
+                    >
+                      {homepage?.heroCtaSecondaire || "La démarche"}
+                      <AnimatedArrowUpRight ref={arrowRef2} size={13} />
+                    </motion.button>
+                  );
+                })()}
               </div>
             </motion.div>
           </div>
+
+          {/* Mobile CTA section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="lg:hidden mt-12"
+          >
+            <img
+              src={logoBlancSrc}
+              alt="Atelier DESNOYERS"
+              className="w-20 mb-6"
+            />
+            <p className="text-sm text-white/70 leading-relaxed mb-8 max-w-md">
+              {loading ? "Chargement..." : homepage?.heroDescription || "Je conçois des jardins naturalistes et les accompagne dans le temps. Entre conception et soin, créer des lieux vivants, sensibles et durables."}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {(() => {
+                const arrowRef3 = useRef<ArrowUpRightIconHandle>(null);
+                return (
+                  <motion.button
+                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                    onHoverStart={() => arrowRef3.current?.startAnimation()}
+                    onHoverEnd={() => arrowRef3.current?.stopAnimation()}
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.9)" }}
+                    whileTap={{ backgroundColor: "rgba(255,255,255,0.8)" }}
+                    transition={{ duration: 0.2 }}
+                    className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-primary text-xs tracking-widest uppercase"
+                  >
+                    {homepage?.heroCtaPrincipal || "Projet de jardin"}
+                    <AnimatedArrowUpRight ref={arrowRef3} size={12} />
+                  </motion.button>
+                );
+              })()}
+              {(() => {
+                const arrowRef4 = useRef<ArrowUpRightIconHandle>(null);
+                return (
+                  <motion.button
+                    onClick={() => document.getElementById('observer')?.scrollIntoView({ behavior: 'smooth' })}
+                    onHoverStart={() => arrowRef4.current?.startAnimation()}
+                    onHoverEnd={() => arrowRef4.current?.stopAnimation()}
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.8)" }}
+                    whileTap={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                    transition={{ duration: 0.2 }}
+                    className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 text-white text-xs tracking-widest uppercase"
+                  >
+                    {homepage?.heroCtaSecondaire || "La démarche"}
+                    <AnimatedArrowUpRight ref={arrowRef4} size={12} />
+                  </motion.button>
+                );
+              })()}
+            </div>
+          </motion.div>
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40"
           >
             <span className="text-[10px] tracking-widest uppercase">Défiler</span>
-            <div className="w-px h-8 bg-white/20" />
+            <div className="w-px h-10 bg-white/20" />
           </motion.div>
         </motion.div>
       </section>
 
       {/* PORTFOLIO */}
       <section className="border-t border-border overflow-hidden py-20 md:py-32">
-        <div className="px-6 md:px-12 max-w-6xl mx-auto">
+        <div className="w-full px-8 md:px-16 lg:px-24">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -671,7 +1081,7 @@ export default function Home() {
             <div>
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Réalisations</p>
               <h2
-                className="text-3xl md:text-4xl font-normal"
+                className="text-4xl md:text-5xl lg:text-6xl font-normal"
                 style={{ fontFamily: "'Fraunces', serif" }}
               >
                 Portfolio de mes jardins
@@ -685,7 +1095,7 @@ export default function Home() {
             </a>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
             {portfolio && portfolio.slice(0, 6).map((p, index) => (
               <motion.button
                 key={p.id}
@@ -736,22 +1146,22 @@ export default function Home() {
       <CitationSection citation={citation} />
 
       {/* OBSERVER */}
-      <StackingSection id="observer" className="bg-background" zIndex={10}>
+      <StackingSection id="observer" className="bg-background" zIndex={10} passRef={true} extendedScroll={true}>
         <ObserverContent observer={observer} />
       </StackingSection>
 
       {/* DESSINER */}
-      <StackingSection id="dessiner" className="border-t border-border bg-card" zIndex={20}>
+      <StackingSection id="dessiner" className="border-t border-border bg-card" zIndex={20} passRef={true} extendedScroll={true}>
         <DessinerContent dessiner={dessiner} />
       </StackingSection>
 
       {/* RÉALISER */}
-      <StackingSection id="realiser" className="bg-background" zIndex={30}>
+      <StackingSection id="realiser" className="bg-background" zIndex={30} passRef={true} extendedScroll={true}>
         <RealiserContent realiser={realiser} />
       </StackingSection>
 
       {/* ACCOMPAGNER */}
-      <StackingSection id="accompagner" className="border-t border-border bg-card" zIndex={40} isLast={true}>
+      <StackingSection id="accompagner" className="border-t border-border bg-card" zIndex={40} passRef={true} extendedScroll={true}>
         <AccompagnerContent accompagner={accompagner} />
       </StackingSection>
 
