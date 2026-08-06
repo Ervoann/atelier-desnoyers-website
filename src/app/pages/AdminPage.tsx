@@ -8,8 +8,9 @@ import ImageGalleryModal from '../components/ImageGalleryModal';
 import ImageGallery from '../components/ImageGallery';
 import PortfolioManager from '../components/PortfolioManager';
 import FaqManager from '../components/FaqManager';
+import ArticleManager from '../components/ArticleManager';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio' | 'galerie';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio' | 'galerie' | 'articles';
 
 // Portfolio Form Component
 function PortfolioForm({
@@ -1164,6 +1165,16 @@ export default function AdminPage() {
             FAQ
           </button>
           <button
+            onClick={() => setActiveSection('articles')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'articles'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Articles
+          </button>
+          <button
             onClick={() => setActiveSection('galerie')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
               activeSection === 'galerie'
@@ -1180,7 +1191,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           {/* Edit/Save Buttons */}
-          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && (
+          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && activeSection !== 'articles' && (
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
                 {activeSection === 'homepage' && 'Page d\'accueil - Hero Section'}
@@ -2002,6 +2013,11 @@ export default function AdminPage() {
           {/* Portfolio Management */}
           {activeSection === 'portfolio' && (
             <PortfolioManager portfolios={portfolios} onReload={loadData} />
+          )}
+
+          {/* Articles Management */}
+          {activeSection === 'articles' && (
+            <ArticleManager onReload={loadData} />
           )}
 
           {/* FAQ save messages */}

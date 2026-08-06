@@ -50,11 +50,18 @@ export default function Root() {
               { label: "Dessiner", href: isHome ? "#dessiner" : "/#dessiner" },
               { label: "Réaliser", href: isHome ? "#realiser" : "/#realiser" },
               { label: "Accompagner", href: isHome ? "#accompagner" : "/#accompagner" },
+              { label: "Portrait", href: isHome ? "#portrait" : "/#portrait" },
+              { label: "Journal", href: "/journal" },
+              { label: "FAQ", href: isHome ? "#faq" : "/#faq" },
             ].map((l) => (
               <a
                 key={l.label}
                 href={l.href}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className={`transition-colors ${
+                  isHome && !scrolled
+                    ? "text-white/95 hover:text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
                 {l.label}
               </a>
@@ -84,6 +91,8 @@ export default function Root() {
               { label: "Réaliser", href: "/#realiser" },
               { label: "Accompagner", href: "/#accompagner" },
               { label: "Portrait", href: "/#portrait" },
+              { label: "Journal", href: "/journal" },
+              { label: "FAQ", href: "/#faq" },
             ].map((l) => (
               <a
                 key={l.label}
@@ -102,7 +111,7 @@ export default function Root() {
 
       {/* FOOTER */}
       <footer className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div className="w-full px-8 md:px-16 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
             <ImageWithFallback
               src={logoSrc}
