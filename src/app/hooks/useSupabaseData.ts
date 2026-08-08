@@ -26,11 +26,13 @@ export interface HomepageData {
   heroDescription: string;
   heroCtaPrincipal: string;
   heroCtaSecondaire: string;
+  heroVideoUrl?: string;
 }
 
 export interface CitationData {
   texte: string;
   sousTexte: string;
+  imageFondUrl?: string;
 }
 
 export interface DemarcheObserverData {
@@ -44,6 +46,7 @@ export interface DemarcheObserverData {
   action2Description: string;
   action3Titre: string;
   action3Description: string;
+  imageUrl?: string;
 }
 
 export interface DemarcheDessinerData {
@@ -59,6 +62,7 @@ export interface DemarcheDessinerData {
   aspect3Detail: string;
   aspect4Titre: string;
   aspect4Detail: string;
+  imageUrl?: string;
 }
 
 export interface DemarcheRealiserData {
@@ -73,6 +77,7 @@ export interface DemarcheRealiserData {
   action2Description: string;
   action3Titre: string;
   action3Description: string;
+  imageUrl?: string;
 }
 
 export interface DemarcheAccompagnerData {
@@ -91,6 +96,7 @@ export interface DemarcheAccompagnerData {
   offre4Titre: string;
   offre4Rythme: string;
   offre4Description: string;
+  imageUrl?: string;
 }
 
 export interface PortraitData {
@@ -100,6 +106,9 @@ export interface PortraitData {
   paragraphe1: string;
   paragraphe2: string;
   paragraphe3: string;
+  image1Url?: string;
+  image2Url?: string;
+  image3Url?: string;
 }
 
 export interface FaqData {
@@ -134,6 +143,25 @@ export interface PortfolioData {
   slides?: PortfolioSlideData[];
 }
 
+export interface JardinImageData {
+  id: number;
+  imageUrl: string;
+  altText: string | null;
+  linkUrl: string | null;
+  ordre: number;
+}
+
+export interface TemoignageData {
+  id: number;
+  nom: string;
+  lieu: string;
+  date: string;
+  note: number;
+  avis: string;
+  ordre: number;
+  visible: boolean;
+}
+
 export function useHomepage() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +185,7 @@ export function useHomepage() {
             heroDescription: result.heroDescription || result.hero_description || '',
             heroCtaPrincipal: result.heroCtaPrincipal || result.hero_cta_principal || '',
             heroCtaSecondaire: result.heroCtaSecondaire || result.hero_cta_secondaire || '',
+            heroVideoUrl: result.hero_video_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -195,6 +224,7 @@ export function useCitation() {
           setData({
             texte: richTextToPlainText(result.texte),
             sousTexte: result.sousTexte || result.sous_texte || '',
+            imageFondUrl: result.image_fond_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -241,6 +271,7 @@ export function useDemarcheObserver() {
             action2Description: result.action_2_description || '',
             action3Titre: result.action_3_titre || '',
             action3Description: result.action_3_description || '',
+            imageUrl: result.image_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -289,6 +320,7 @@ export function useDemarcheDessiner() {
             aspect3Detail: result.aspect_3_detail || result.aspect3Detail || '',
             aspect4Titre: result.aspect_4_titre || result.aspect4Titre || '',
             aspect4Detail: result.aspect_4_detail || result.aspect4Detail || '',
+            imageUrl: result.image_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -336,6 +368,7 @@ export function useDemarcheRealiser() {
             action2Description: result.action_2_description || '',
             action3Titre: result.action_3_titre || '',
             action3Description: result.action_3_description || '',
+            imageUrl: result.image_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -387,6 +420,7 @@ export function useDemarcheAccompagner() {
             offre4Titre: result.offre_4_titre || '',
             offre4Rythme: result.offre_4_rythme || '',
             offre4Description: result.offre_4_description || '',
+            imageUrl: result.image_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -429,6 +463,9 @@ export function usePortrait() {
             paragraphe1: result.paragraphe_1 || '',
             paragraphe2: result.paragraphe_2 || '',
             paragraphe3: result.paragraphe_3 || '',
+            image1Url: result.image_1_url || '',
+            image2Url: result.image_2_url || '',
+            image3Url: result.image_3_url || '',
           });
         } else {
           setError('Aucune donnée trouvée');
@@ -534,4 +571,84 @@ export function usePortfolios() {
   }, []);
 
   return { data, loading, error, refetch: fetchPortfolios };
+}
+
+export function useJardinImages() {
+  const [data, setData] = useState<JardinImageData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchJardinImages = async () => {
+    try {
+      const { data: result, error: supabaseError } = await supabase
+        .from('jardin_images')
+        .select('*')
+        .order('ordre', { ascending: true });
+
+      if (supabaseError) throw supabaseError;
+
+      if (result) {
+        setData(result.map(img => ({
+          id: img.id,
+          imageUrl: img.image_url || '',
+          altText: img.alt_text || null,
+          linkUrl: img.link_url || null,
+          ordre: img.ordre || 0,
+        })));
+      }
+    } catch (err) {
+      console.error('Erreur lors de la récupération des images jardin:', err);
+      setError('Erreur de connexion à Supabase');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJardinImages();
+  }, []);
+
+  return { data, loading, error, refetch: fetchJardinImages };
+}
+
+export function useTemoignages() {
+  const [data, setData] = useState<TemoignageData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTemoignages = async () => {
+    try {
+      const { data: result, error: supabaseError } = await supabase
+        .from('temoignages')
+        .select('*')
+        .eq('visible', true)
+        .order('ordre', { ascending: true });
+
+      if (supabaseError) throw supabaseError;
+
+      if (result) {
+        setData(result.map(temoignage => ({
+          id: temoignage.id,
+          nom: temoignage.nom || '',
+          lieu: temoignage.lieu || '',
+          date: temoignage.date || '',
+          note: temoignage.note || 5,
+          avis: temoignage.avis || '',
+          ordre: temoignage.ordre || 0,
+          visible: temoignage.visible !== false,
+        })));
+      }
+    } catch (err) {
+      console.error('Erreur lors de la récupération des témoignages:', err);
+      setError('Erreur de connexion à Supabase');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemoignages();
+  }, []);
+
+  return { data, loading, error, refetch: fetchTemoignages };
 }

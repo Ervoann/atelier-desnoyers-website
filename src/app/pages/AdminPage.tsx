@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData } from '../hooks/useSupabaseData';
+import type { HomepageData, CitationData, DemarcheObserverData, DemarcheDessinerData, DemarcheRealiserData, DemarcheAccompagnerData, PortraitData, FaqData, PortfolioData, PortfolioSlideData, JardinImageData, TemoignageData } from '../hooks/useSupabaseData';
 import ImageUploader from '../components/ImageUploader';
 import ImageGalleryModal from '../components/ImageGalleryModal';
 import ImageGallery from '../components/ImageGallery';
 import PortfolioManager from '../components/PortfolioManager';
 import FaqManager from '../components/FaqManager';
 import ArticleManager from '../components/ArticleManager';
+import JardinManager from '../components/JardinManager';
+import TemoignagesManager from '../components/TemoignagesManager';
 
-type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'faq' | 'portfolio' | 'galerie' | 'articles';
+type Section = 'homepage' | 'citation' | 'observer' | 'dessiner' | 'realiser' | 'accompagner' | 'portrait' | 'jardin' | 'temoignages' | 'faq' | 'portfolio' | 'galerie' | 'articles';
 
 // Portfolio Form Component
 function PortfolioForm({
@@ -396,6 +398,8 @@ export default function AdminPage() {
   const [realiser, setRealiser] = useState<Partial<DemarcheRealiserData>>({});
   const [accompagner, setAccompagner] = useState<Partial<DemarcheAccompagnerData>>({});
   const [portrait, setPortrait] = useState<Partial<PortraitData>>({});
+  const [jardinImages, setJardinImages] = useState<JardinImageData[]>([]);
+  const [temoignages, setTemoignages] = useState<TemoignageData[]>([]);
   const [faqs, setFaqs] = useState<FaqData[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioData[]>([]);
 
@@ -447,6 +451,7 @@ export default function AdminPage() {
           heroDescription: homepageData.hero_description || '',
           heroCtaPrincipal: homepageData.hero_cta_principal || '',
           heroCtaSecondaire: homepageData.hero_cta_secondaire || '',
+          heroVideoUrl: homepageData.hero_video_url || '',
         });
       }
 
@@ -471,6 +476,7 @@ export default function AdminPage() {
         setCitation({
           texte: texte || '',
           sousTexte: citationData.sousTexte || citationData.sous_texte || '',
+          imageFondUrl: citationData.image_fond_url || '',
         });
       }
 
@@ -488,6 +494,7 @@ export default function AdminPage() {
           action2Description: observerData.action_2_description || '',
           action3Titre: observerData.action_3_titre || '',
           action3Description: observerData.action_3_description || '',
+          imageUrl: observerData.image_url || '',
         });
       }
 
@@ -507,6 +514,7 @@ export default function AdminPage() {
           aspect3Detail: dessinerData.aspect_3_detail || '',
           aspect4Titre: dessinerData.aspect_4_titre || '',
           aspect4Detail: dessinerData.aspect_4_detail || '',
+          imageUrl: dessinerData.image_url || '',
         });
       }
 
@@ -525,6 +533,7 @@ export default function AdminPage() {
           action2Description: realiserData.action_2_description || '',
           action3Titre: realiserData.action_3_titre || '',
           action3Description: realiserData.action_3_description || '',
+          imageUrl: realiserData.image_url || '',
         });
       }
 
@@ -547,6 +556,7 @@ export default function AdminPage() {
           offre4Titre: accompagnerData.offre_4_titre || '',
           offre4Rythme: accompagnerData.offre_4_rythme || '',
           offre4Description: accompagnerData.offre_4_description || '',
+          imageUrl: accompagnerData.image_url || '',
         });
       }
 
@@ -560,7 +570,37 @@ export default function AdminPage() {
           paragraphe1: portraitData.paragraphe_1 || '',
           paragraphe2: portraitData.paragraphe_2 || '',
           paragraphe3: portraitData.paragraphe_3 || '',
+          image1Url: portraitData.image_1_url || '',
+          image2Url: portraitData.image_2_url || '',
+          image3Url: portraitData.image_3_url || '',
         });
+      }
+
+      // Charger Jardin Images
+      const { data: jardinData } = await supabase.from('jardin_images').select('*').order('ordre', { ascending: true });
+      if (jardinData) {
+        setJardinImages(jardinData.map(img => ({
+          id: img.id,
+          imageUrl: img.image_url || '',
+          altText: img.alt_text || null,
+          linkUrl: img.link_url || null,
+          ordre: img.ordre || 0,
+        })));
+      }
+
+      // Charger Témoignages (tous, même cachés pour l'admin)
+      const { data: temoignagesData } = await supabase.from('temoignages').select('*').order('ordre', { ascending: true });
+      if (temoignagesData) {
+        setTemoignages(temoignagesData.map(t => ({
+          id: t.id,
+          nom: t.nom || '',
+          lieu: t.lieu || '',
+          date: t.date || '',
+          note: t.note || 5,
+          avis: t.avis || '',
+          ordre: t.ordre || 0,
+          visible: t.visible !== false,
+        })));
       }
 
       // Charger FAQs
@@ -652,6 +692,7 @@ export default function AdminPage() {
             hero_description: homepage.heroDescription,
             hero_cta_principal: homepage.heroCtaPrincipal,
             hero_cta_secondaire: homepage.heroCtaSecondaire,
+            hero_video_url: homepage.heroVideoUrl,
           })
           .eq('id', (await supabase.from('homepages').select('id').limit(1).single()).data?.id);
 
@@ -662,6 +703,7 @@ export default function AdminPage() {
           .update({
             texte: citation.texte,
             sous_texte: citation.sousTexte,
+            image_fond_url: citation.imageFondUrl,
           })
           .eq('id', (await supabase.from('citations').select('id').limit(1).single()).data?.id);
 
@@ -680,6 +722,7 @@ export default function AdminPage() {
             action_2_description: observer.action2Description,
             action_3_titre: observer.action3Titre,
             action_3_description: observer.action3Description,
+            image_url: observer.imageUrl,
           })
           .eq('id', (await supabase.from('demarche_observers').select('id').limit(1).single()).data?.id);
 
@@ -700,6 +743,7 @@ export default function AdminPage() {
             aspect_3_detail: dessiner.aspect3Detail,
             aspect_4_titre: dessiner.aspect4Titre,
             aspect_4_detail: dessiner.aspect4Detail,
+            image_url: dessiner.imageUrl,
           })
           .eq('id', (await supabase.from('demarche_dessiners').select('id').limit(1).single()).data?.id);
 
@@ -719,6 +763,7 @@ export default function AdminPage() {
             action_2_description: realiser.action2Description,
             action_3_titre: realiser.action3Titre,
             action_3_description: realiser.action3Description,
+            image_url: realiser.imageUrl,
           })
           .eq('id', (await supabase.from('demarche_realisers').select('id').limit(1).single()).data?.id);
 
@@ -742,6 +787,7 @@ export default function AdminPage() {
             offre_4_titre: accompagner.offre4Titre,
             offre_4_rythme: accompagner.offre4Rythme,
             offre_4_description: accompagner.offre4Description,
+            image_url: accompagner.imageUrl,
           })
           .eq('id', (await supabase.from('demarche_accompagners').select('id').limit(1).single()).data?.id);
 
@@ -756,6 +802,9 @@ export default function AdminPage() {
             paragraphe_1: portrait.paragraphe1,
             paragraphe_2: portrait.paragraphe2,
             paragraphe_3: portrait.paragraphe3,
+            image_1_url: portrait.image1Url,
+            image_2_url: portrait.image2Url,
+            image_3_url: portrait.image3Url,
           })
           .eq('id', (await supabase.from('portraits').select('id').limit(1).single()).data?.id);
 
@@ -1175,6 +1224,26 @@ export default function AdminPage() {
             Articles
           </button>
           <button
+            onClick={() => setActiveSection('jardin')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'jardin'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Jardin
+          </button>
+          <button
+            onClick={() => setActiveSection('temoignages')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+              activeSection === 'temoignages'
+                ? 'border-green-600 text-green-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Témoignages
+          </button>
+          <button
             onClick={() => setActiveSection('galerie')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
               activeSection === 'galerie'
@@ -1191,7 +1260,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           {/* Edit/Save Buttons */}
-          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && activeSection !== 'articles' && (
+          {activeSection !== 'faq' && activeSection !== 'portfolio' && activeSection !== 'galerie' && activeSection !== 'articles' && activeSection !== 'jardin' && activeSection !== 'temoignages' && (
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
                 {activeSection === 'homepage' && 'Page d\'accueil - Hero Section'}
@@ -1300,6 +1369,19 @@ export default function AdminPage() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vidéo de fond (URL YouTube embed)</label>
+                <input
+                  type="url"
+                  value={homepage.heroVideoUrl || ''}
+                  onChange={(e) => setHomepage({ ...homepage, heroVideoUrl: e.target.value })}
+                  readOnly={!isEditing}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                  placeholder="https://www.youtube-nocookie.com/embed/..."
+                />
+                <p className="text-xs text-gray-500 mt-1">URL d'embed YouTube avec paramètres autoplay, mute, loop, etc.</p>
+              </div>
             </div>
           )}
 
@@ -1328,6 +1410,28 @@ export default function AdminPage() {
                   className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   placeholder="L'histoire d'un jardin ne s'arrête pas le jour où on le plante..."
                 />
+              </div>
+
+              <div>
+                <ImageUploader
+                  currentImageUrl={citation.imageFondUrl || ''}
+                  onImageUploaded={(url) => setCitation({ ...citation, imageFondUrl: url })}
+                  label="Image de fond"
+                  bucketName="portfolios"
+                  disabled={!isEditing}
+                />
+                {isEditing && (
+                  <div className="mt-2">
+                    <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                    <input
+                      type="url"
+                      value={citation.imageFondUrl || ''}
+                      onChange={(e) => setCitation({ ...citation, imageFondUrl: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1451,6 +1555,28 @@ export default function AdminPage() {
                         className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <ImageUploader
+                      currentImageUrl={observer.imageUrl || ''}
+                      onImageUploaded={(url) => setObserver({ ...observer, imageUrl: url })}
+                      label="Image de la section"
+                      bucketName="portfolios"
+                      disabled={!isEditing}
+                    />
+                    {isEditing && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                        <input
+                          type="url"
+                          value={observer.imageUrl || ''}
+                          onChange={(e) => setObserver({ ...observer, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1600,6 +1726,28 @@ export default function AdminPage() {
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <ImageUploader
+                      currentImageUrl={dessiner.imageUrl || ''}
+                      onImageUploaded={(url) => setDessiner({ ...dessiner, imageUrl: url })}
+                      label="Image de la section"
+                      bucketName="portfolios"
+                      disabled={!isEditing}
+                    />
+                    {isEditing && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                        <input
+                          type="url"
+                          value={dessiner.imageUrl || ''}
+                          onChange={(e) => setDessiner({ ...dessiner, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1735,6 +1883,28 @@ export default function AdminPage() {
                         className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <ImageUploader
+                      currentImageUrl={realiser.imageUrl || ''}
+                      onImageUploaded={(url) => setRealiser({ ...realiser, imageUrl: url })}
+                      label="Image de la section"
+                      bucketName="portfolios"
+                      disabled={!isEditing}
+                    />
+                    {isEditing && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                        <input
+                          type="url"
+                          value={realiser.imageUrl || ''}
+                          onChange={(e) => setRealiser({ ...realiser, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1928,6 +2098,28 @@ export default function AdminPage() {
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <ImageUploader
+                      currentImageUrl={accompagner.imageUrl || ''}
+                      onImageUploaded={(url) => setAccompagner({ ...accompagner, imageUrl: url })}
+                      label="Image de la section"
+                      bucketName="portfolios"
+                      disabled={!isEditing}
+                    />
+                    {isEditing && (
+                      <div className="mt-2">
+                        <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                        <input
+                          type="url"
+                          value={accompagner.imageUrl || ''}
+                          onChange={(e) => setAccompagner({ ...accompagner, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2002,7 +2194,87 @@ export default function AdminPage() {
                   className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                 />
               </div>
+
+              <div className="space-y-6 border-t pt-6">
+                <h3 className="text-md font-semibold text-gray-800">Images du portrait</h3>
+
+                <div>
+                  <ImageUploader
+                    currentImageUrl={portrait.image1Url || ''}
+                    onImageUploaded={(url) => setPortrait({ ...portrait, image1Url: url })}
+                    label="Image 1 (paragraphe 1 - droite)"
+                    bucketName="portfolios"
+                    disabled={!isEditing}
+                  />
+                  {isEditing && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                      <input
+                        type="url"
+                        value={portrait.image1Url || ''}
+                        onChange={(e) => setPortrait({ ...portrait, image1Url: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <ImageUploader
+                    currentImageUrl={portrait.image2Url || ''}
+                    onImageUploaded={(url) => setPortrait({ ...portrait, image2Url: url })}
+                    label="Image 2 (paragraphe 2 - gauche)"
+                    bucketName="portfolios"
+                    disabled={!isEditing}
+                  />
+                  {isEditing && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                      <input
+                        type="url"
+                        value={portrait.image2Url || ''}
+                        onChange={(e) => setPortrait({ ...portrait, image2Url: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <ImageUploader
+                    currentImageUrl={portrait.image3Url || ''}
+                    onImageUploaded={(url) => setPortrait({ ...portrait, image3Url: url })}
+                    label="Image 3 (paragraphe 3 - droite)"
+                    bucketName="portfolios"
+                    disabled={!isEditing}
+                  />
+                  {isEditing && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-500 mb-1">Ou entrez une URL directement :</label>
+                      <input
+                        type="url"
+                        value={portrait.image3Url || ''}
+                        onChange={(e) => setPortrait({ ...portrait, image3Url: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Jardin Management */}
+          {activeSection === 'jardin' && (
+            <JardinManager images={jardinImages} onUpdate={loadData} />
+          )}
+
+          {/* Temoignages Management */}
+          {activeSection === 'temoignages' && (
+            <TemoignagesManager temoignages={temoignages} onUpdate={loadData} />
           )}
 
           {/* FAQ Management */}

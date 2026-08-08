@@ -19,7 +19,7 @@ interface ReorderItemProps {
 }
 
 function ReorderItem({ portfolio, onEdit, onDelete, onToggleVisible }: ReorderItemProps) {
-  const isVisible = portfolio.ordre <= 6;
+  const isVisible = portfolio.ordre <= 8;
 
   return (
     <Reorder.Item
@@ -122,8 +122,8 @@ export default function PortfolioManager({ portfolios, onReload }: PortfolioMana
 
   // Synchroniser avec les props
   useEffect(() => {
-    const visible = portfolios.filter(p => p.ordre <= 6).sort((a, b) => a.ordre - b.ordre);
-    const hidden = portfolios.filter(p => p.ordre > 6).sort((a, b) => a.ordre - b.ordre);
+    const visible = portfolios.filter(p => p.ordre <= 8).sort((a, b) => a.ordre - b.ordre);
+    const hidden = portfolios.filter(p => p.ordre > 8).sort((a, b) => a.ordre - b.ordre);
     setVisiblePortfolios(visible);
     setHiddenPortfolios(hidden);
   }, [portfolios]);
@@ -147,7 +147,7 @@ export default function PortfolioManager({ portfolios, onReload }: PortfolioMana
       console.error('Erreur lors de la mise à jour de l\'ordre:', err);
       alert('Erreur lors de la mise à jour de l\'ordre');
       // Restore from props
-      const visible = portfolios.filter(p => p.ordre <= 6).sort((a, b) => a.ordre - b.ordre);
+      const visible = portfolios.filter(p => p.ordre <= 8).sort((a, b) => a.ordre - b.ordre);
       setVisiblePortfolios(visible);
     }
   };
@@ -168,7 +168,13 @@ export default function PortfolioManager({ portfolios, onReload }: PortfolioMana
     const portfolio = portfolios.find(p => p.id === id);
     if (!portfolio) return;
 
-    const newOrdre = portfolio.ordre <= 6 ? 999 : visiblePortfolios.length + 1;
+    // Si on veut rendre visible un projet masqué et qu'on a déjà 8 projets visibles
+    if (portfolio.ordre > 8 && visiblePortfolios.length >= 8) {
+      alert('⚠️ Vous avez déjà 8 projets visibles (maximum).\n\nVeuillez en masquer un avant d\'en rendre visible un autre.');
+      return;
+    }
+
+    const newOrdre = portfolio.ordre <= 8 ? 999 : visiblePortfolios.length + 1;
 
     try {
       const { error } = await supabase
@@ -190,7 +196,14 @@ export default function PortfolioManager({ portfolios, onReload }: PortfolioMana
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Portfolios affichés sur le site</h2>
-            <p className="text-sm text-gray-600">Maximum 6 projets • Glissez-déposez pour réorganiser</p>
+            <p className="text-sm text-gray-600">
+              Maximum 8 projets • Glissez-déposez pour réorganiser
+              {visiblePortfolios.length >= 8 && (
+                <span className="ml-2 text-orange-600 font-medium">
+                  ⚠ Limite atteinte ({visiblePortfolios.length}/8)
+                </span>
+              )}
+            </p>
           </div>
           <button
             onClick={() => setIsAddingNew(true)}

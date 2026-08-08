@@ -64,6 +64,23 @@ export default function PortfolioEditForm({ portfolio, onClose, onSave }: Portfo
     setError(null);
 
     try {
+      let finalOrdre = ordre;
+
+      // Si c'est un nouveau portfolio, calculer l'ordre automatiquement
+      if (!portfolio?.id) {
+        // Compter combien de portfolios visibles existent déjà
+        const { data: visibleCount } = await supabase
+          .from('portfolios')
+          .select('id', { count: 'exact', head: true })
+          .lte('ordre', 8);
+
+        const count = visibleCount ? (visibleCount as any).count : 0;
+
+        // Si on a déjà 8 projets visibles, créer comme masqué (ordre = 999)
+        // Sinon, ajouter à la fin des visibles
+        finalOrdre = count >= 8 ? 999 : count + 1;
+      }
+
       const portfolioData = {
         slug,
         titre,
@@ -75,7 +92,7 @@ export default function PortfolioEditForm({ portfolio, onClose, onSave }: Portfo
         image_principale: imagePrincipale,
         description,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        ordre,
+        ordre: finalOrdre,
       };
 
       if (portfolio?.id) {
@@ -95,6 +112,11 @@ export default function PortfolioEditForm({ portfolio, onClose, onSave }: Portfo
           .single();
 
         if (insertError) throw insertError;
+
+        // Afficher un message si le projet a été créé comme masqué
+        if (finalOrdre === 999) {
+          alert('⚠️ Vous avez déjà 8 projets visibles.\n\nCe nouveau projet a été créé comme MASQUÉ.\n\nPour le rendre visible, masquez d\'abord un autre projet.');
+        }
 
         // Update portfolio ID for slides
         if (newPortfolio) {

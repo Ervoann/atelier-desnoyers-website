@@ -51,7 +51,7 @@ export default function Root() {
               { label: "Réaliser", href: isHome ? "#realiser" : "/#realiser" },
               { label: "Accompagner", href: isHome ? "#accompagner" : "/#accompagner" },
               { label: "Portrait", href: isHome ? "#portrait" : "/#portrait" },
-              { label: "Journal", href: "/journal" },
+              { label: "Journal", href: isHome ? "#journal" : "/#journal" },
               { label: "FAQ", href: isHome ? "#faq" : "/#faq" },
             ].map((l) => (
               <a
@@ -91,7 +91,7 @@ export default function Root() {
               { label: "Réaliser", href: "/#realiser" },
               { label: "Accompagner", href: "/#accompagner" },
               { label: "Portrait", href: "/#portrait" },
-              { label: "Journal", href: "/journal" },
+              { label: "Journal", href: "/#journal" },
               { label: "FAQ", href: "/#faq" },
             ].map((l) => (
               <a

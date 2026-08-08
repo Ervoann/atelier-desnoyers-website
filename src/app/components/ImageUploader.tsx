@@ -9,6 +9,7 @@ interface ImageUploaderProps {
   label?: string;
   bucketName?: string;
   folder?: string;
+  disabled?: boolean;
 }
 
 export default function ImageUploader({
@@ -16,7 +17,8 @@ export default function ImageUploader({
   onImageUploaded,
   label = "Image",
   bucketName = 'portfolios',
-  folder = ''
+  folder = '',
+  disabled = false
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
@@ -116,18 +118,24 @@ export default function ImageUploader({
             alt="Preview"
             className="w-full h-48 object-cover rounded-lg border-2 border-gray-300"
           />
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
-          >
-            <X size={16} />
-          </button>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
+            >
+              <X size={16} />
+            </button>
+          )}
           {uploading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
               <div className="text-white text-sm">Upload en cours...</div>
             </div>
           )}
+        </div>
+      ) : disabled ? (
+        <div className="w-full h-48 border-2 border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
+          <p className="text-sm text-gray-400">Aucune image</p>
         </div>
       ) : (
         <div className="space-y-2">

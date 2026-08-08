@@ -10,7 +10,7 @@ import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoBlancSrc from "@/imports/ATELIER-DESNOYERS-BLANC-1.png";
 import { AnimatedArrowUpRight, type ArrowUpRightIconHandle } from "@/app/components/AnimatedArrowUpRight";
 import { SplitTextReveal } from "@/app/components/SplitTextReveal";
-import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs, usePortfolios } from "@/app/hooks/useSupabaseData";
+import { useHomepage, useCitation, useDemarcheObserver, useDemarcheDessiner, useDemarcheRealiser, useDemarcheAccompagner, usePortrait, useFaqs, usePortfolios, useJardinImages, useTemoignages } from "@/app/hooks/useSupabaseData";
 import type { PortfolioData } from "@/app/hooks/useSupabaseData";
 
 type Projet = PortfolioData;
@@ -853,6 +853,8 @@ export default function Home() {
   const { data: portrait } = usePortrait();
   const { data: faqs } = useFaqs();
   const { data: portfolio } = usePortfolios();
+  const { data: jardinImages } = useJardinImages();
+  const { data: temoignages } = useTemoignages();
 
   // Charger les articles depuis Supabase
   useEffect(() => {
@@ -908,7 +910,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-xs md:text-sm tracking-widest uppercase text-white/40 mb-8 md:mb-10"
+                className="text-[10px] md:text-sm tracking-widest uppercase text-white/40 mb-8 md:mb-10"
                 style={{ fontFamily: "'DM Mono', monospace" }}
               >
                 {loading ? "Chargement..." : homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"}
@@ -1093,7 +1095,7 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-            {portfolio && portfolio.slice(0, 6).map((p, index) => (
+            {portfolio && portfolio.slice(0, 8).map((p, index) => (
               <motion.button
                 key={p.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -1198,7 +1200,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <p className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed">
@@ -1208,7 +1210,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="aspect-[4/3] overflow-hidden bg-muted"
             >
@@ -1227,7 +1229,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="aspect-[4/3] overflow-hidden bg-muted order-2 lg:order-1"
             >
@@ -1240,7 +1242,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="order-1 lg:order-2"
             >
@@ -1257,7 +1259,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <p className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed">
@@ -1267,7 +1269,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-200px" }}
+              viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="aspect-[4/3] overflow-hidden bg-muted"
             >
@@ -1282,7 +1284,7 @@ export default function Home() {
       </section>
 
       {/* BLOG */}
-      <section className="relative z-50 border-t border-border bg-card py-24 md:py-40">
+      <section id="journal" className="relative z-50 border-t border-border bg-card py-24 md:py-40">
         <div className="w-full px-8 md:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1401,31 +1403,9 @@ export default function Home() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                nom: "Sophie M.",
-                lieu: "Lyon 6e",
-                date: "Mars 2024",
-                note: 5,
-                avis: "Antoine a transformé notre cour intérieure en un espace que nous n'osions même pas imaginer. Son écoute, sa précision et son sens du végétal sont remarquables. Chaque plante est à sa place — et cela se sent.",
-              },
-              {
-                nom: "Thomas & Claire R.",
-                lieu: "Annecy",
-                date: "Juillet 2024",
-                note: 5,
-                avis: "Un vrai jardinier-designer, rare combinaison. Il a su comprendre notre terrain en une seule visite et proposer quelque chose qui lui ressemble vraiment. Le résultat est d'une beauté sobre et durable.",
-              },
-              {
-                nom: "Isabelle L.",
-                lieu: "Grenoble",
-                date: "Octobre 2023",
-                note: 5,
-                avis: "Très professionnel, à l'écoute et créatif. La palette végétale qu'il a choisie pour notre massif est parfaitement adaptée — les plantes poussent sans effort et le jardin change joliment au fil des saisons.",
-              },
-            ].map((r, i) => (
+            {(temoignages || []).map((r, i) => (
               <motion.div
-                key={i}
+                key={r.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
@@ -1660,21 +1640,20 @@ export default function Home() {
             </a>
           </div>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-[5px]">
-            {[
-              { src: "https://images.unsplash.com/photo-1758192333796-ad8120cc987b?w=400&h=400&fit=crop&auto=format", alt: "Vivaces naturalistes" },
-              { src: "https://images.unsplash.com/photo-1594886551831-610f739902e9?w=400&h=400&fit=crop&auto=format", alt: "Massif fleuri" },
-              { src: "https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=400&h=400&fit=crop&auto=format", alt: "Plantation" },
-              { src: "https://images.unsplash.com/photo-1695616827909-6f147f22d40f?w=400&h=400&fit=crop&auto=format", alt: "Jardin de vivaces" },
-              { src: "https://images.unsplash.com/photo-1764070140879-1120c0a9e9eb?w=400&h=400&fit=crop&auto=format", alt: "Jardin automnal" },
-              { src: "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=400&h=400&fit=crop&auto=format", alt: "Prairie fleurie" },
-            ].map((img, i) => (
-              <div key={i} className="aspect-square overflow-hidden bg-muted group cursor-pointer border-t-[3px] border-accent/60">
+            {(jardinImages || []).slice(0, 6).map((img, i) => (
+              <a
+                key={img.id}
+                href={img.linkUrl || 'https://www.instagram.com/antoine.desnoyers/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="aspect-square overflow-hidden bg-muted group cursor-pointer border-t-[3px] border-accent/60"
+              >
                 <img
-                  src={img.src}
-                  alt={img.alt}
+                  src={img.imageUrl}
+                  alt={img.altText || `Photo jardin ${i + 1}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-              </div>
+              </a>
             ))}
           </div>
         </div>
