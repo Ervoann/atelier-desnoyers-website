@@ -177,7 +177,7 @@ function ObserverContent({ observer }: { observer: any }) {
           <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60 relative">
             <motion.img
               style={{ y: imageY }}
-              src="https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=1200&fit=crop&auto=format"
+              src={observer?.imageUrl || "https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=1200&fit=crop&auto=format"}
               alt="Observation et diagnostic du sol"
               className="w-full h-full object-cover scale-125"
             />
@@ -252,7 +252,7 @@ function DessinerContent({ dessiner }: { dessiner: any }) {
           <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60 relative">
             <motion.img
               style={{ y: imageY }}
-              src="https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=1200&fit=crop&auto=format"
+              src={dessiner?.imageUrl || "https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=1200&fit=crop&auto=format"}
               alt="Conception et esquisses de jardin"
               className="w-full h-full object-cover scale-125"
             />
@@ -478,7 +478,7 @@ function RealiserContent({ realiser }: { realiser: any }) {
           <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60 relative">
             <motion.img
               style={{ y: imageY }}
-              src="https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=1200&fit=crop&auto=format"
+              src={realiser?.imageUrl || "https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=1200&fit=crop&auto=format"}
               alt="Plantation en cours — mise en terre des végétaux"
               className="w-full h-full object-cover scale-125"
             />
@@ -549,7 +549,7 @@ function AccompagnerContent({ accompagner }: { accompagner: any }) {
           <div ref={imageContainerRef} className="w-full h-full min-h-[500px] overflow-hidden bg-muted border-t-[3px] border-accent/60 relative">
             <motion.img
               style={{ y: imageY }}
-              src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop&auto=format"
+              src={accompagner?.imageUrl || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop&auto=format"}
               alt="Accompagnement et entretien du jardin"
               className="w-full h-full object-cover scale-125"
             />
@@ -667,7 +667,7 @@ function CitationSection({ citation }: { citation: any }) {
       {/* Background image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1920&h=1080&fit=crop&auto=format&q=80"
+          src={citation?.imageFondUrl || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1920&h=1080&fit=crop&auto=format&q=80"}
           alt="Jardin paysager naturel"
           className="w-full h-full object-cover brightness-[0.3]"
         />
@@ -1215,7 +1215,7 @@ export default function Home() {
               className="aspect-[4/3] overflow-hidden bg-muted"
             >
               <img
-                src="https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"
+                src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
                 alt="Portrait — Atelier DESNOYERS dans son jardin"
                 className="w-full h-full object-cover"
               />
@@ -1234,7 +1234,7 @@ export default function Home() {
               className="aspect-[4/3] overflow-hidden bg-muted order-2 lg:order-1"
             >
               <img
-                src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"
+                src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
                 alt="Observation de la nature et du jardin"
                 className="w-full h-full object-cover"
               />
@@ -1274,7 +1274,7 @@ export default function Home() {
               className="aspect-[4/3] overflow-hidden bg-muted"
             >
               <img
-                src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"
+                src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
                 alt="Jardin imaginé et créé ensemble"
                 className="w-full h-full object-cover"
               />
