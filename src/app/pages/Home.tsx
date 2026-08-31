@@ -831,7 +831,7 @@ function HeroVideo() {
           minWidth: "177.77vh", // 16:9 aspect ratio
           pointerEvents: 'none'
         }}
-        src="https://www.youtube-nocookie.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0"
+        src="https://www.youtube-nocookie.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&start=0&end=30&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0"
         title="Background video"
         frameBorder="0"
         allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -910,10 +910,27 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-[10px] md:text-sm tracking-widest uppercase text-white/40 mb-8 md:mb-10"
+                className="text-[10px] md:text-sm tracking-widest uppercase text-white/40 mb-8 md:mb-10 leading-relaxed"
                 style={{ fontFamily: "'DM Mono', monospace" }}
               >
-                {loading ? "Chargement..." : homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne"}
+                {loading ? (
+                  "Chargement..."
+                ) : (
+                  (() => {
+                    const surtitre = homepage?.heroSurtitre || "Jardinier · Designer — Lyon & Rhône-Alpes Auvergne";
+                    const [premiereLigne, ...reste] = surtitre.split("—");
+                    const secondeLigne = reste.join("—").trim();
+                    return secondeLigne ? (
+                      <>
+                        {premiereLigne.trim()}
+                        <br />
+                        {secondeLigne}
+                      </>
+                    ) : (
+                      surtitre
+                    );
+                  })()
+                )}
               </motion.p>
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
@@ -1212,7 +1229,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted"
+              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60"
             >
               <img
                 src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
@@ -1231,7 +1248,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted order-2 lg:order-1"
+              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 order-2 lg:order-1"
             >
               <img
                 src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
@@ -1271,7 +1288,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted"
+              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60"
             >
               <img
                 src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
