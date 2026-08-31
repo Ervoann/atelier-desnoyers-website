@@ -818,10 +818,61 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
   );
 }
 
+const HERO_VIDEO_ID = "r_epbFJ231Y";
+const HERO_VIDEO_LOOP_END = 30; // secondes — on coupe avant le titrage final puis on reboucle
+
 function HeroVideo() {
+  const iframeId = "hero-youtube-player";
+
+  // Le paramètre `end` de l'URL YouTube n'est pas fiable une fois que loop=1
+  // reprend la main (la vidéo rejoue parfois jusqu'au bout). On pilote donc
+  // le bouclage nous-mêmes via l'IFrame API : dès que la lecture dépasse
+  // HERO_VIDEO_LOOP_END, on revient au début.
+  useEffect(() => {
+    let player: any;
+    let checkInterval: ReturnType<typeof setInterval>;
+
+    const startWatcher = () => {
+      checkInterval = setInterval(() => {
+        if (player?.getCurrentTime && player.getCurrentTime() >= HERO_VIDEO_LOOP_END) {
+          player.seekTo(0, true);
+        }
+      }, 500);
+    };
+
+    const createPlayer = () => {
+      player = new (window as any).YT.Player(iframeId, {
+        events: {
+          onReady: startWatcher,
+        },
+      });
+    };
+
+    if ((window as any).YT?.Player) {
+      createPlayer();
+    } else {
+      const previousCallback = (window as any).onYouTubeIframeAPIReady;
+      (window as any).onYouTubeIframeAPIReady = () => {
+        previousCallback?.();
+        createPlayer();
+      };
+
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(tag);
+      }
+    }
+
+    return () => {
+      clearInterval(checkInterval);
+    };
+  }, []);
+
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }}>
       <iframe
+        id={iframeId}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
           scale: "1.5",
@@ -831,7 +882,7 @@ function HeroVideo() {
           minWidth: "177.77vh", // 16:9 aspect ratio
           pointerEvents: 'none'
         }}
-        src="https://www.youtube-nocookie.com/embed/r_epbFJ231Y?autoplay=1&mute=1&loop=1&playlist=r_epbFJ231Y&start=0&end=30&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0"
+        src={`https://www.youtube-nocookie.com/embed/${HERO_VIDEO_ID}?autoplay=1&mute=1&loop=1&playlist=${HERO_VIDEO_ID}&start=0&end=${HERO_VIDEO_LOOP_END}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&enablejsapi=1&fs=0&cc_load_policy=0`}
         title="Background video"
         frameBorder="0"
         allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
