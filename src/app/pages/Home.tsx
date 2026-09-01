@@ -523,6 +523,84 @@ function RealiserContent({ realiser }: { realiser: any }) {
 }
 
 // Accompagner section content with Daylight-style layout (image left, content right)
+// Portrait — bloc de texte à gauche, 3 images en collage légèrement superposé à droite
+// (même vocabulaire visuel que les blocs de démarche : fond muted + liseré vert en haut)
+function PortraitCollage({ portrait }: { portrait: any }) {
+  const paragraphes = [
+    portrait?.paragraphe1 || 'J\'ai commencé à prendre soin des jardins et à en dessiner à partir de 2016. Peintre et graphiste de formation, diplômé de l\'École Émile Cohl, j\'ai peu à peu ressenti le besoin de quitter les écrans et l\'atelier pour me tourner vers le vivant. J\'ai alors entrepris d\'apprendre à le nommer, à le comprendre et à cultiver cet artisanat patient qu\'est l\'art du jardin.',
+    portrait?.paragraphe2 || 'De la botanique à la faune — auxiliaires comme parasites — en passant par l\'étude des sols et des différents biotopes, j\'ai appris à observer, reconnaître et déchiffrer ce que le terrain avait à raconter. Au fil des saisons, cette attention portée au détail a nourri mon regard autant que mon émerveillement.',
+    portrait?.paragraphe3 || 'Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu qui vous ressemble.',
+  ];
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-16 lg:gap-16 items-center px-8 md:px-16 py-12 md:py-16">
+      {/* Bloc de texte */}
+      <div className="w-full lg:w-[40%] space-y-6 md:space-y-8">
+        {paragraphes.map((texte, i) => (
+          <motion.p
+            key={i}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, delay: i * 0.15, ease: "easeOut" }}
+            className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed"
+          >
+            {texte}
+          </motion.p>
+        ))}
+      </div>
+
+      {/* Collage d'images légèrement superposées */}
+      <div className="relative w-full lg:w-[60%] pt-8 pb-12 md:pt-10 md:pb-16">
+        {/* Image 1 — photo principale, en haut à gauche de la zone */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative w-[68%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-10"
+        >
+          <img
+            src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
+            alt="Portrait — Atelier DESNOYERS dans son jardin"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+
+        {/* Image 3 — petite touche en haut à droite, chevauche à peine l'image 1 */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+          className="hidden sm:block absolute top-0 right-0 w-[30%] aspect-square overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-lg z-20"
+        >
+          <img
+            src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
+            alt="Jardin imaginé et créé ensemble"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+
+        {/* Image 2 — décalée en bas à droite, chevauche le coin de l'image 1 */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+          className="absolute bottom-0 right-0 w-[46%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-30"
+        >
+          <img
+            src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
+            alt="Observation de la nature et du jardin"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 function AccompagnerContent({ accompagner }: { accompagner: any }) {
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1262,93 +1340,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Step 1: First paragraph with image on right */}
-        <div className="flex items-center py-12 md:py-16">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 lg:gap-12 items-center px-8 md:px-16">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            >
-              <p className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed">
-                {portrait?.paragraphe1 || 'J\'ai commencé à prendre soin des jardins et à en dessiner à partir de 2016. Peintre et graphiste de formation, diplômé de l\'École Émile Cohl, j\'ai peu à peu ressenti le besoin de quitter les écrans et l\'atelier pour me tourner vers le vivant. J\'ai alors entrepris d\'apprendre à le nommer, à le comprendre et à cultiver cet artisanat patient qu\'est l\'art du jardin.'}
-              </p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60"
-            >
-              <img
-                src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
-                alt="Portrait — Atelier DESNOYERS dans son jardin"
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Step 2: Second paragraph with image on left */}
-        <div className="flex items-center py-12 md:py-16">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 lg:gap-12 items-center px-8 md:px-16">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 order-2 lg:order-1"
-            >
-              <img
-                src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
-                alt="Observation de la nature et du jardin"
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-1 lg:order-2"
-            >
-              <p className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed">
-                {portrait?.paragraphe2 || 'De la botanique à la faune — auxiliaires comme parasites — en passant par l\'étude des sols et des différents biotopes, j\'ai appris à observer, reconnaître et déchiffrer ce que le terrain avait à raconter. Au fil des saisons, cette attention portée au détail a nourri mon regard autant que mon émerveillement.'}
-              </p>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Step 3: Third paragraph with image on right */}
-        <div className="flex items-center py-12 md:py-16">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 lg:gap-12 items-center px-8 md:px-16">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            >
-              <p className="text-lg md:text-xl lg:text-2xl text-foreground leading-relaxed">
-                {portrait?.paragraphe3 || 'Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu qui vous ressemble.'}
-              </p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60"
-            >
-              <img
-                src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
-                alt="Jardin imaginé et créé ensemble"
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          </div>
-        </div>
+        {/* Texte à gauche, images en collage superposé à droite — écho des blocs de démarche */}
+        <PortraitCollage portrait={portrait} />
       </section>
 
       {/* BLOG */}
