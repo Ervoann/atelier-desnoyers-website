@@ -570,7 +570,7 @@ function PortraitCollage({ portrait }: { portrait: any }) {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           style={{ y: y1 }}
-          className="relative w-[78%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-10"
+          className="relative w-[70%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-10"
         >
           <img
             src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
@@ -586,7 +586,7 @@ function PortraitCollage({ portrait }: { portrait: any }) {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
           style={{ y: y3 }}
-          className="hidden sm:block absolute top-0 right-[-6%] w-[32%] aspect-square overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-lg z-20"
+          className="absolute top-0 right-[-6%] w-[30%] sm:w-[32%] aspect-square overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-lg z-20"
         >
           <img
             src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
@@ -602,7 +602,7 @@ function PortraitCollage({ portrait }: { portrait: any }) {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           style={{ y: y2 }}
-          className="absolute bottom-0 right-0 w-[50%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-30"
+          className="absolute bottom-[-6%] right-[-4%] w-[44%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-30"
         >
           <img
             src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
