@@ -1034,7 +1034,12 @@ export default function Home() {
       />
 
       {/* HERO — full screen video */}
-      <section className="relative h-screen min-h-[700px] flex items-end overflow-hidden bg-[#1a1f16]">
+      {/* h-screen-safe (voir tailwind.css) : sur mobile, la barre d'adresse qui
+          apparaît/disparaît fait que 100vh ne correspond pas à la zone réellement
+          visible, ce qui poussait le surtitre sous le header. */}
+      {/* pt-24 : réserve un espace sous le header fixe, pour que le contenu (ancré en bas)
+          ne remonte jamais derrière le logo/menu quand la hauteur visible est très compressée. */}
+      <section className="relative h-screen-safe min-h-[700px] flex items-end overflow-hidden bg-[#1a1f16] pt-24">
         <HeroVideo />
         {/* Gradient en haut pour lisibilité menu */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 via-black/30 to-transparent" />
@@ -1044,7 +1049,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full px-8 md:px-16 lg:px-24 pb-32 md:pb-40"
+          className="relative w-full px-8 md:px-16 lg:px-24 pb-8 sm:pb-16 md:pb-32 lg:pb-40"
         >
           <div className="flex items-end justify-between gap-16">
             {/* Left side - Giant title */}

@@ -18,7 +18,17 @@ export function SplitTextReveal({ text, className = "", delay = 0 }: SplitTextRe
   return (
     <span ref={ref} className={className}>
       {words.map((word, i) => (
-        <span key={i} style={{ display: "inline-block", overflow: "hidden" }}>
+        <span
+          key={i}
+          style={{
+            display: "inline-block",
+            overflow: "hidden",
+            // Marge basse pour laisser respirer les jambages (g, j, p...)
+            // sans décaler visuellement la ligne suivante (compensé par la marge négative).
+            paddingBottom: "0.2em",
+            marginBottom: "-0.2em",
+          }}
+        >
           <motion.span
             style={{ display: "inline-block", willChange: "transform" }}
             initial={{ y: "100%" }}
