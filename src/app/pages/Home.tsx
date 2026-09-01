@@ -1080,12 +1080,12 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="lg:hidden mt-12"
+            className="lg:hidden mt-6 sm:mt-12"
           >
             <img
               src={logoBlancSrc}
               alt="Atelier DESNOYERS"
-              className="w-20 mb-6"
+              className="w-14 sm:w-20 mb-4 sm:mb-6"
             />
             <p className="text-sm text-white/70 leading-relaxed mb-8 max-w-md">
               {loading ? "Chargement..." : homepage?.heroDescription || "Je conçois des jardins naturalistes et les accompagne dans le temps. Entre conception et soin, créer des lieux vivants, sensibles et durables."}
