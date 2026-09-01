@@ -532,10 +532,21 @@ function PortraitCollage({ portrait }: { portrait: any }) {
     portrait?.paragraphe3 || 'Chaque jardin possède son caractère, son rythme et ses promesses. Si vous souhaitez les révéler, je serai heureux de cheminer à vos côtés pour imaginer ensemble un lieu qui vous ressemble.',
   ];
 
+  // Parallax léger au scroll : chaque image dérive à une vitesse différente
+  // pour donner de la profondeur au collage (comme les blocs de démarche).
+  const clusterRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: clusterRef,
+    offset: ["start end", "end start"],
+  });
+  const y1 = useTransform(scrollYProgress, [0, 1], ["3%", "-3%"]);
+  const y2 = useTransform(scrollYProgress, [0, 1], ["9%", "-9%"]);
+  const y3 = useTransform(scrollYProgress, [0, 1], ["-7%", "7%"]);
+
   return (
-    <div className="flex flex-col lg:flex-row gap-16 lg:gap-16 items-center px-8 md:px-16 py-12 md:py-16">
+    <div className="flex flex-col lg:flex-row gap-16 lg:gap-12 items-center px-8 md:px-16 py-12 md:py-16">
       {/* Bloc de texte */}
-      <div className="w-full lg:w-[40%] space-y-6 md:space-y-8">
+      <div className="w-full lg:w-[32%] space-y-6 md:space-y-8">
         {paragraphes.map((texte, i) => (
           <motion.p
             key={i}
@@ -550,15 +561,16 @@ function PortraitCollage({ portrait }: { portrait: any }) {
         ))}
       </div>
 
-      {/* Collage d'images légèrement superposées */}
-      <div className="relative w-full lg:w-[60%] pt-8 pb-12 md:pt-10 md:pb-16">
+      {/* Collage d'images légèrement superposées — occupe nettement plus d'espace que le texte */}
+      <div ref={clusterRef} className="relative w-full lg:w-[68%] pt-8 pb-12 md:pt-12 md:pb-20">
         {/* Image 1 — photo principale, en haut à gauche de la zone */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative w-[68%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-10"
+          style={{ y: y1 }}
+          className="relative w-[78%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-10"
         >
           <img
             src={portrait?.image1Url || "https://images.unsplash.com/photo-1680176104120-9dba9c415e89?w=1200&h=900&fit=crop&auto=format"}
@@ -567,13 +579,14 @@ function PortraitCollage({ portrait }: { portrait: any }) {
           />
         </motion.div>
 
-        {/* Image 3 — petite touche en haut à droite, chevauche à peine l'image 1 */}
+        {/* Image 3 — petite touche décalée nettement à droite, pour ne pas s'aligner avec l'image 2 */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
-          className="hidden sm:block absolute top-0 right-0 w-[30%] aspect-square overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-lg z-20"
+          style={{ y: y3 }}
+          className="hidden sm:block absolute top-0 right-[-6%] w-[32%] aspect-square overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-lg z-20"
         >
           <img
             src={portrait?.image3Url || "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&h=900&fit=crop&auto=format"}
@@ -584,11 +597,12 @@ function PortraitCollage({ portrait }: { portrait: any }) {
 
         {/* Image 2 — décalée en bas à droite, chevauche le coin de l'image 1 */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="absolute bottom-0 right-0 w-[46%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-30"
+          style={{ y: y2 }}
+          className="absolute bottom-0 right-0 w-[50%] aspect-[4/3] overflow-hidden bg-muted border-t-[3px] border-accent/60 shadow-xl z-30"
         >
           <img
             src={portrait?.image2Url || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=900&fit=crop&auto=format"}
