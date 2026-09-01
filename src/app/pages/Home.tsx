@@ -86,7 +86,7 @@ function ObserverContent({ observer }: { observer: any }) {
   });
 
   // Enhanced parallax effect for image - stronger movement like Daylight
-  const imageY = useTransform(imageScrollProgress, [0, 1], ["-20%", "20%"]);
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-14%", "14%"]);
 
   // Decorative element movement - moves in opposite direction for depth
   const overlayY = useTransform(imageScrollProgress, [0, 1], ["10%", "-10%"]);
@@ -95,7 +95,7 @@ function ObserverContent({ observer }: { observer: any }) {
   return (
     <div className="w-full">
       {/* Layout: Contenu gauche 70% | Image droite 30% */}
-      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+      <div className="flex flex-col lg:flex-row items-stretch lg:min-h-screen">
 
         {/* Left Column - Title + Text + Action Cards */}
         <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-24 lg:pr-12 py-16 md:py-40 gap-8">
@@ -179,7 +179,7 @@ function ObserverContent({ observer }: { observer: any }) {
               style={{ y: imageY }}
               src={observer?.imageUrl || "https://images.unsplash.com/photo-1611843467160-25afb8df1074?w=900&h=1200&fit=crop&auto=format"}
               alt="Observation et diagnostic du sol"
-              className="w-full h-full object-cover scale-125"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.6]"
             />
             {/* Decorative overlay element that moves with scroll */}
             <motion.div
@@ -236,7 +236,7 @@ function DessinerContent({ dessiner }: { dessiner: any }) {
   });
 
   // Enhanced parallax effect for image - stronger movement like Daylight
-  const imageY = useTransform(imageScrollProgress, [0, 1], ["-20%", "20%"]);
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-14%", "14%"]);
 
   // Decorative element movement - moves in opposite direction for depth
   const overlayY = useTransform(imageScrollProgress, [0, 1], ["10%", "-10%"]);
@@ -245,7 +245,7 @@ function DessinerContent({ dessiner }: { dessiner: any }) {
   return (
     <div className="w-full">
       {/* Layout: Image gauche 30% | Contenu droite 70% */}
-      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+      <div className="flex flex-col lg:flex-row items-stretch lg:min-h-screen">
 
         {/* Left Column - Image 30% (no padding) */}
         <div className="lg:w-[30%] flex-shrink-0 self-stretch order-2 lg:order-1">
@@ -254,7 +254,7 @@ function DessinerContent({ dessiner }: { dessiner: any }) {
               style={{ y: imageY }}
               src={dessiner?.imageUrl || "https://images.unsplash.com/photo-1532211387405-12202cb81d7b?w=900&h=1200&fit=crop&auto=format"}
               alt="Conception et esquisses de jardin"
-              className="w-full h-full object-cover scale-125"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.6]"
             />
             {/* Decorative overlay element that moves with scroll */}
             <motion.div
@@ -381,7 +381,7 @@ function RealiserContent({ realiser }: { realiser: any }) {
   });
 
   // Enhanced parallax effect for image - stronger movement like Daylight
-  const imageY = useTransform(imageScrollProgress, [0, 1], ["-20%", "20%"]);
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-14%", "14%"]);
 
   // Decorative element movement - moves in opposite direction for depth
   const overlayY = useTransform(imageScrollProgress, [0, 1], ["10%", "-10%"]);
@@ -390,7 +390,7 @@ function RealiserContent({ realiser }: { realiser: any }) {
   return (
     <div className="w-full">
       {/* Layout: Contenu gauche 70% | Image droite 30% */}
-      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+      <div className="flex flex-col lg:flex-row items-stretch lg:min-h-screen">
 
         {/* Left Column - Title + Text + Action Cards */}
         <div className="flex-1 flex flex-col justify-between px-8 md:px-16 lg:pl-24 lg:pr-12 py-16 md:py-40 gap-8">
@@ -480,7 +480,7 @@ function RealiserContent({ realiser }: { realiser: any }) {
               style={{ y: imageY }}
               src={realiser?.imageUrl || "https://images.unsplash.com/photo-1492496913980-501348b61469?w=900&h=1200&fit=crop&auto=format"}
               alt="Plantation en cours — mise en terre des végétaux"
-              className="w-full h-full object-cover scale-125"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.6]"
             />
             {/* Decorative overlay element that moves with scroll */}
             <motion.div
@@ -625,7 +625,7 @@ function AccompagnerContent({ accompagner }: { accompagner: any }) {
   });
 
   // Enhanced parallax effect for image - stronger movement like Daylight
-  const imageY = useTransform(imageScrollProgress, [0, 1], ["-20%", "20%"]);
+  const imageY = useTransform(imageScrollProgress, [0, 1], ["-14%", "14%"]);
 
   // Decorative element movement - moves in opposite direction for depth
   const overlayY = useTransform(imageScrollProgress, [0, 1], ["10%", "-10%"]);
@@ -634,7 +634,7 @@ function AccompagnerContent({ accompagner }: { accompagner: any }) {
   return (
     <div className="w-full">
       {/* Layout: Image gauche 30% | Contenu droite 70% */}
-      <div className="flex flex-col lg:flex-row items-stretch min-h-screen">
+      <div className="flex flex-col lg:flex-row items-stretch lg:min-h-screen">
 
         {/* Left Column - Image 30% */}
         <div className="lg:w-[30%] flex-shrink-0 self-stretch order-2 lg:order-1">
@@ -643,7 +643,7 @@ function AccompagnerContent({ accompagner }: { accompagner: any }) {
               style={{ y: imageY }}
               src={accompagner?.imageUrl || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop&auto=format"}
               alt="Accompagnement et entretien du jardin"
-              className="w-full h-full object-cover scale-125"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.6]"
             />
             {/* Decorative overlay element that moves with scroll */}
             <motion.div
@@ -768,7 +768,7 @@ function CitationSection({ citation }: { citation: any }) {
       {/* Content container - centered */}
       <div className="relative z-10 w-full px-8 md:px-16 lg:px-24 text-center">
         {/* Giant title with blur word reveal animation */}
-        <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] md:leading-[1.05] text-white font-normal mb-6 md:mb-12" style={{ fontFamily: "'Fraunces', serif" }}>
+        <div className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.15] md:leading-[1.05] text-white font-normal mb-6 md:mb-12" style={{ fontFamily: "'Fraunces', serif" }}>
           <CitationWordReveal text={citation?.texte || '"Des jardins comme des tableaux vivants."'} />
         </div>
 
