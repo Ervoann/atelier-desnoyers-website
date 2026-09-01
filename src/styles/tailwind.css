@@ -6,3 +6,13 @@
 body {
   overflow-x: hidden;
 }
+
+/* Hauteur d'écran mobile-safe : 100vh en repli, 100dvh (s'ajuste à la barre
+   d'adresse qui apparaît/disparaît) pour les navigateurs qui le supportent.
+   Écrit ici plutôt qu'avec deux classes Tailwind (h-screen h-dvh) car l'ordre
+   des utilitaires générés par Tailwind ne suit pas l'ordre des classes dans
+   le HTML — seule une vraie règle CSS garantit que dvh prenne le dessus. */
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
