@@ -546,7 +546,7 @@ function PortraitCollage({ portrait }: { portrait: any }) {
   return (
     <div className="flex flex-col lg:flex-row gap-16 lg:gap-12 items-center px-8 md:px-16 py-12 md:py-16">
       {/* Bloc de texte */}
-      <div className="w-full lg:w-[32%] space-y-6 md:space-y-8">
+      <div className="w-full lg:w-[40%] space-y-6 md:space-y-8">
         {paragraphes.map((texte, i) => (
           <motion.p
             key={i}
@@ -562,7 +562,7 @@ function PortraitCollage({ portrait }: { portrait: any }) {
       </div>
 
       {/* Collage d'images légèrement superposées — occupe nettement plus d'espace que le texte */}
-      <div ref={clusterRef} className="relative w-full lg:w-[68%] pt-8 pb-12 md:pt-12 md:pb-20">
+      <div ref={clusterRef} className="relative w-full lg:w-[60%] pt-8 pb-12 md:pt-12 md:pb-20">
         {/* Image 1 — photo principale, en haut à gauche de la zone */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
